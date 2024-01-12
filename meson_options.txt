@@ -25,6 +25,11 @@ option('macos-backend',
        value: true,
        description : 'Enable the macOS gdk backend (only when building on macOS)')
 
+option('qnxscreen_backend',
+	type: 'boolean',
+	value: true,
+	description : 'Enable the QNX Screen backend')
+
 # Media backends
 # For distros: GTK guarantees support for WebM video (VP8 and VP9), so a supported build
 # should provide that.

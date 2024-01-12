@@ -52,6 +52,10 @@
 #include "wayland/gdkprivate-wayland.h"
 #endif
 
+#ifdef GDK_WINDOWING_QNX_SCREEN
+#include "qnxscreen/gdkprivate-qnxscreen.h"
+#endif
+
 /**
  * GdkDisplayManager:
  *
@@ -234,6 +238,7 @@ static const char *allowed_backends;
  *   - `wayland`.
  *   - `win32`
  *   - `x11`
+ *   - `qnx`
  *
  * You can also include a `*` in the list to try all remaining backends.
  *
@@ -269,6 +274,9 @@ static GdkBackend gdk_backends[] = {
 #endif
 #ifdef GDK_WINDOWING_BROADWAY
   { "broadway", _gdk_broadway_display_open },
+#endif
+#ifdef GDK_WINDOWING_QNX_SCREEN
+  { "qnx", _gdk_qnxscreen_display_open },
 #endif
   /* NULL-terminating this array so we can use commas above */
   { NULL, NULL }

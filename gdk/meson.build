@@ -179,6 +179,7 @@ gdkconfig_cdata.set('GDK_WINDOWING_WAYLAND', wayland_enabled)
 gdkconfig_cdata.set('GDK_WINDOWING_WIN32', win32_enabled)
 gdkconfig_cdata.set('GDK_WINDOWING_BROADWAY', broadway_enabled)
 gdkconfig_cdata.set('GDK_WINDOWING_MACOS', macos_enabled)
+gdkconfig_cdata.set('GDK_WINDOWING_QNX_SCREEN', qnxscreen_enabled)
 gdkconfig_cdata.set('GDK_RENDERING_CAIRO', true)
 gdkconfig_cdata.set('GDK_RENDERING_GL', true)
 gdkconfig_cdata.set('GDK_RENDERING_VULKAN', have_vulkan)
@@ -260,7 +261,7 @@ libgdk_c_args = [
 
 gdk_backends = []
 gdk_backends_gen_headers = []  # non-public generated headers
-foreach backend : ['broadway', 'wayland', 'win32', 'x11', 'macos']
+foreach backend : ['broadway', 'wayland', 'win32', 'x11', 'macos', 'qnxscreen']
   if get_variable('@0@_enabled'.format(backend))
     subdir(backend)
     gdk_deps += get_variable('gdk_@0@_deps'.format(backend))

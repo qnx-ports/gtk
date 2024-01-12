@@ -102,6 +102,7 @@ broadway_enabled = get_option('broadway-backend')
 macos_enabled    = get_option('macos-backend')
 win32_enabled    = get_option('win32-backend')
 vulkan_enabled   = get_option('vulkan')
+qnxscreen_enabled = get_option('qnxscreen_backend')
 
 os_unix   = false
 os_linux  = false
@@ -853,7 +854,7 @@ gsk_packages = [ 'graphene-gobject-1.0 @0@'.format(graphene_req) ]
 gtk_packages = [ 'gio-2.0 @0@'.format(glib_req) ]
 
 enabled_backends = []
-foreach backend: [ 'broadway', 'macos', 'wayland', 'win32', 'x11', ]
+foreach backend: [ 'broadway', 'macos', 'wayland', 'win32', 'x11', 'qnxscreen', ]
   if get_variable('@0@_enabled'.format(backend))
     enabled_backends += backend
   endif
