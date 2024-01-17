@@ -1,0 +1,4 @@
+nto-aarch64-le/**/*
+!nto-aarch64-le/Makefile
+nto-x86_64-o/**/*
+!nto-x86_64-o/Makefile

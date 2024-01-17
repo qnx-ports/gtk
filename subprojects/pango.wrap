@@ -5,6 +5,7 @@ push-url = ssh://git@ssh.gitlab.gnome.org:GNOME/pango.git
 # needs to be main, because we build the nightly docs from the subproject
 revision = main
 depth = 1
+diff_files = qnx/pango/0001-Modifications-for-QNX.patch
 
 [provide]
 pango = libpango_dep

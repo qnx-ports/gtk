@@ -1,0 +1,31 @@
+From a3d3e0b1d9c3347b5f05e7a19ac7940922925bbb Mon Sep 17 00:00:00 2001
+From: Aaron Ruby <aruby@blackberry.com>
+Date: Thu, 13 Jul 2023 18:15:24 -0400
+Subject: [PATCH] Modifications for QNX
+
+---
+ meson.build | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index 3db0d09..e5674cd 100644
+--- a/meson.build
++++ b/meson.build
+@@ -21,9 +21,11 @@ libversion = '@0@.@1@.0'.format(soversion, interface_version, interface_age)
+ # C compiler. This is the cross compiler if we're cross-compiling
+ cc = meson.get_compiler('c')
+ 
+-if cc.get_id() == 'gcc' and cc.has_argument('-ansi')
+-  add_project_arguments('-ansi', language: 'c')
+-endif
++## BEGIN QNX changes
++#if cc.get_id() == 'gcc' and cc.has_argument('-ansi')
++#  add_project_arguments('-ansi', language: 'c')
++#endif
++## END QNX changes
+ 
+ # Handle symbol visibility for Windows
+ fribidi_static_cargs = []
+-- 
+GitLab
+

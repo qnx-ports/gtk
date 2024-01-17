@@ -1,0 +1,3 @@
+[submodule "qnx/deps/meson"]
+	path = qnx/deps/meson
+	url = https://github.com/mesonbuild/meson

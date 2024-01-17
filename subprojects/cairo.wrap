@@ -4,6 +4,7 @@ url = https://gitlab.freedesktop.org/cairo/cairo.git
 push-url = ssh://git@gitlab.freedesktop.org:cairo/cairo.git
 revision = 1.17.6
 depth = 1
+diff_files = qnx/cairo/0001-Modifications-for-QNX.patch
 
 [provide]
 cairo = libcairo_dep

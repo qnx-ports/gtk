@@ -1,0 +1,8 @@
+libdir=${qnx_socket_lib_dir}
+includedir=${qnx_socket_include_dir}
+
+Name: libsocket
+Description: Socket library
+Version: 9999
+Libs: -L${libdir} -lsocket
+Cflags: -I${includedir}

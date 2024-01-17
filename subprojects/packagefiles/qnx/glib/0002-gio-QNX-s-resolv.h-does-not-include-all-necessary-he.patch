@@ -1,0 +1,28 @@
+From fab86a54fdae32a19ae82cf2fbbffcf94e490b59 Mon Sep 17 00:00:00 2001
+From: Peter Cai <xicai@blackberry.com>
+Date: Mon, 15 Jan 2024 14:58:47 -0500
+Subject: [PATCH 2/2] gio: QNX's resolv.h does not include all necessary
+ headers
+
+---
+ gio/meson.build | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/gio/meson.build b/gio/meson.build
+index 54ebade9b..a08923da4 100644
+--- a/gio/meson.build
++++ b/gio/meson.build
+@@ -49,6 +49,10 @@ if host_system != 'windows'
+                            #include <netinet/in.h>
+                            #include <arpa/nameser.h>
+                         ''' + res_query_test
++  if host_system == 'qnx'
++    # QNX resolv.h does not include the rest automatically
++    res_query_test = res_query_test_full
++  endif
+   if not cc.links(res_query_test_full, name : 'res_query()')
+     if cc.links(res_query_test_full, args : '-lresolv', name : 'res_query() in -lresolv')
+       network_libs += [ cc.find_library('resolv') ]
+-- 
+2.34.1
+

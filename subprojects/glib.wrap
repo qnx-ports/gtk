@@ -4,6 +4,7 @@ url = https://gitlab.gnome.org/GNOME/glib.git
 push-url = ssh://git@ssh.gitlab.gnome.org:GNOME/glib.git
 revision = 2.76.0
 depth = 1
+diff_files = qnx/glib/0001-Modifications-for-QNX.patch, qnx/glib/0002-gio-QNX-s-resolv.h-does-not-include-all-necessary-he.patch
 
 [provide]
 dependency_names = gthread-2.0, gobject-2.0, gmodule-no-export-2.0, gmodule-export-2.0, gmodule-2.0, glib-2.0, gio-2.0, gio-windows-2.0, gio-unix-2.0

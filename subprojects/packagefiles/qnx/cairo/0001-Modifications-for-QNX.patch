@@ -1,0 +1,32 @@
+From 06ae1e9e7422c84743cea1907205c57ac8f98b73 Mon Sep 17 00:00:00 2001
+From: Aaron Ruby <aruby@blackberry.com>
+Date: Thu, 13 Jul 2023 17:59:07 -0400
+Subject: [PATCH] Modifications for QNX.
+
+---
+ src/cairo-ps-surface.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/cairo-ps-surface.c b/src/cairo-ps-surface.c
+index ad52918c2..db14762c6 100644
+--- a/src/cairo-ps-surface.c
++++ b/src/cairo-ps-surface.c
+@@ -102,6 +102,7 @@
+ #define DEBUG_FALLBACK(s)
+ #endif
+ 
++#if !defined(__QNXNTO__)
+ #ifndef HAVE_CTIME_R
+ static char *ctime_r(const time_t *timep, char *buf)
+ {
+@@ -109,6 +110,7 @@ static char *ctime_r(const time_t *timep, char *buf)
+     return ctime(timep);
+ }
+ #endif
++#endif
+ 
+ /**
+  * SECTION:cairo-ps
+-- 
+2.34.1
+

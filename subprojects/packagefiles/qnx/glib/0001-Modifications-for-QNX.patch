@@ -1,0 +1,65 @@
+From 05795c8f0394c38556015ff696238937161cc899 Mon Sep 17 00:00:00 2001
+From: Aaron Ruby <aruby@blackberry.com>
+Date: Thu, 13 Jul 2023 18:29:11 -0400
+Subject: [PATCH 1/2] Modifications for QNX
+
+---
+ gio/meson.build | 6 +++---
+ meson.build     | 3 +++
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/gio/meson.build b/gio/meson.build
+index 39d2f4d15..54ebade9b 100644
+--- a/gio/meson.build
++++ b/gio/meson.build
+@@ -57,7 +57,7 @@ if host_system != 'windows'
+       network_libs += [ cc.find_library('bind') ]
+       network_args += [ '-lbind' ]
+     elif cc.links(res_query_test, args : '-lsocket', name : 'res_query() in -lsocket')
+-      network_libs += [ cc.find_library('socket') ]
++      network_libs += [ cc.find_library('socket', dirs : [meson.get_external_property('socket_lib_dir')]) ]
+       network_args += [ '-lsocket' ]
+     else
+       error('Could not find res_query()')
+@@ -72,7 +72,7 @@ if host_system != 'windows'
+                    }'''
+   if not cc.links(socket_test, name : 'socket()')
+     if cc.links(socket_test, args : '-lsocket', name : 'socket() in -lsocket')
+-      network_libs += [ cc.find_library('socket') ]
++      network_libs += [ cc.find_library('socket', dirs : [meson.get_external_property('socket_lib_dir')]) ]
+       network_args += [ '-lsocket' ]
+     else
+       error('Could not find socket()')
+@@ -855,7 +855,7 @@ libgio = library('gio-2.0',
+   dependencies : [libz_dep, libdl_dep, libmount_dep, libglib_dep,
+                   libgobject_dep, libgmodule_dep, selinux_dep, xattr_dep,
+                   platform_deps, network_libs, libsysprof_capture_dep,
+-                  gioenumtypes_dep, gvdb_dep],
++                  gioenumtypes_dep, gvdb_dep, libsocket_dep],
+   c_args : [gio_c_args, gio_c_args_internal],
+   objc_args : [gio_c_args, gio_c_args_internal],
+   gnu_symbol_visibility : 'hidden',
+diff --git a/meson.build b/meson.build
+index c14b7f5f1..ce9456066 100644
+--- a/meson.build
++++ b/meson.build
+@@ -552,6 +552,8 @@ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+     '-Werror=missing-include-dirs',
+     '-Werror=pointer-arith',
+     '-Werror=unused-result',
++    '-Wno-nonnull',
++    '-Wno-format-nonliteral',
+   ]
+ 
+   warning_c_args = warning_common_args + [
+@@ -2188,6 +2190,7 @@ gvdb_dep = dependency('gvdb')
+ 
+ libm = cc.find_library('m', required : false)
+ libffi_dep = dependency('libffi', version : '>= 3.0.0')
++libsocket_dep = dependency('libsocket')
+ 
+ libz_dep = dependency('zlib')
+ 
+-- 
+2.34.1
+
