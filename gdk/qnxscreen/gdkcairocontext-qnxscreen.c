@@ -18,7 +18,7 @@
 
 #include "config.h"
 #include "gdkcairocontext-qnxscreen-data.h"
-#include "gdksurface-qnxscreen-class.h"
+#include "gdksurface-qnxscreen-data.h"
 #include "gdk_qnxscreen_common.h"
 
 G_DEFINE_TYPE (GdkQnxScreenCairoContext, gdk_qnxscreen_cairo_context, GDK_TYPE_CAIRO_CONTEXT)
@@ -29,7 +29,7 @@ static void gdk_qnxscreen_cairo_context_dispose(GObject* object)
     G_OBJECT_CLASS (gdk_qnxscreen_cairo_context_parent_class)->dispose(object);
 }
 
-static void gdk_qnxscreen_cairo_context_begin_frame(GdkDrawContext* draw_context, gboolean prefers_high_depth, cairo_region_t* region)
+static void gdk_qnxscreen_cairo_context_begin_frame(GdkDrawContext* draw_context, GdkMemoryDepth depth, cairo_region_t* region)
 {
 }
 
@@ -69,7 +69,8 @@ static cairo_t* gdk_qnxscreen_cairo_context_cairo_create(GdkCairoContext* contex
 
     GdkQnxScreenCairoContext* qnx_screen_cairo_context = GDK_QNXSCREEN_CAIRO_CONTEXT(context);
     GdkSurface* surface = gdk_draw_context_get_surface(GDK_DRAW_CONTEXT(qnx_screen_cairo_context));
-    qnx_screen_cairo_context->paint_surface = gdk_qnxscreen_surface_ref_cairo_surface(surface);
+    GdkQnxScreenSurface* qnx_screen_surface = GDK_QNXSCREEN_SURFACE(surface);
+    qnx_screen_cairo_context->paint_surface = cairo_surface_reference(qnx_screen_surface->cairo_surface);
     return cairo_create (qnx_screen_cairo_context->paint_surface);
 }
 

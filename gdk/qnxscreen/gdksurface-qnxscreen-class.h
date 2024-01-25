@@ -33,8 +33,6 @@ typedef struct _GdkQnxScreenSurfaceClass GdkQnxScreenSurfaceClass;
 #define GDK_QNXSCREEN_SURFACE_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_QNXSCREEN_SURFACE, GdkQnxScreenSurfaceClass))
 
 GType gdk_qnxscreen_surface_get_type (void);
-GdkSurface* gdk_qnxscreen_display_create_surface(GdkDisplay* display, GdkSurfaceType surface_type, GdkSurface* parent, int x, int y, int width, int height);
-cairo_surface_t* gdk_qnxscreen_surface_ref_cairo_surface(GdkSurface* surface);
 void gdk_qnxscreen_surface_post_screen(GdkSurface* surface, int num_rects, cairo_rectangle_int_t* damaged_rects);
 
 typedef struct _GdkQnxScreenToplevel GdkQnxScreenToplevel;

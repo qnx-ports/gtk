@@ -213,6 +213,26 @@ int gdk_qnxscreen_device_init_seat(GdkDisplay* display)
     return ret;
 }
 
+static void gdk_qnxscreen_device_surface_destroyed(GdkDevice* device, GdkSurface* surface)
+{
+    GdkQnxScreenDevice* impl = GDK_QNXSCREEN_DEVICE(device);
+    if (impl->surface != NULL && impl->surface == surface) {
+        GDK_DEBUG(MISC, "%s disassociating surface %p with device %p", QNX_SCREEN, surface, device);
+        impl->surface = NULL;
+    }
+}
+
+void gdk_qnxscreen_device_seat_surface_destroyed(GdkDisplay* display, GdkSurface* surface)
+{
+    GDK_DEBUG(MISC, "%s disassociating surface %p with all input devices", QNX_SCREEN, surface);
+    GdkQnxScreenDisplay* qnx_screen_display = GDK_QNXSCREEN_DISPLAY(display);
+    gdk_qnxscreen_device_surface_destroyed(qnx_screen_display->core_pointer, surface);
+    gdk_qnxscreen_device_surface_destroyed(qnx_screen_display->core_keyboard, surface);
+    gdk_qnxscreen_device_surface_destroyed(qnx_screen_display->phys_pointer, surface);
+    gdk_qnxscreen_device_surface_destroyed(qnx_screen_display->phys_keyboard, surface);
+    gdk_qnxscreen_device_surface_destroyed(qnx_screen_display->phys_touchscreen, surface);
+}
+
 static void emit_button_events(GdkDisplay* display, GdkDevice* device, GdkQnxScreenDevice* prev_pointer)
 {
     GDK_DEBUG(EVENTS, "%s handling pointer button event", QNX_SCREEN);

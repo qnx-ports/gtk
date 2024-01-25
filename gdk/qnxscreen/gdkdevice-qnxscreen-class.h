@@ -40,5 +40,6 @@ void gdk_qnxscreen_device_keyboard_event(GdkDisplay* display);
 void gdk_qnxscreen_device_touch_event(GdkDisplay* display, int type);
 void gdk_qnxscreen_inputcontrol_event(GdkDisplay* display, int subtype);
 void gdk_qnxscreen_device_query_state(GdkDevice* device, GdkSurface* surface, double* win_x, double* win_y, GdkModifierType* mask);
+void gdk_qnxscreen_device_seat_surface_destroyed(GdkDisplay* display, GdkSurface* surface);
 
 #endif

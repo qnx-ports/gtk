@@ -33,5 +33,6 @@ typedef struct _GdkQnxScreenDisplayClass GdkQnxScreenDisplayClass;
 
 GType gdk_qnxscreen_display_get_type(void);
 void gdk_qnxscreen_display_management_event(GdkDisplay* display);
+void gdk_qnxscreen_display_surface_destroyed(GdkDisplay* display, GdkSurface* surface);
 
 #endif

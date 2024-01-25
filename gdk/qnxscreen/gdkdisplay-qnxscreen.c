@@ -143,7 +143,6 @@ static void gdk_qnxscreen_display_class_init(GdkQnxScreenDisplayClass* class)
     display_class->get_name = gdk_qnxscreen_display_get_name;
     display_class->get_setting = gdk_qnxscreen_display_get_setting;
     display_class->get_monitors = gdk_qnxscreen_display_get_monitors;
-    display_class->create_surface = gdk_qnxscreen_display_create_surface;
     display_class->has_pending = gdk_qnxscreen_display_has_pending;
     display_class->get_next_serial = gdk_qnxscreen_display_get_next_serial;
     display_class->notify_startup_complete = gdk_qnxscreen_display_notify_startup_complete;
@@ -151,6 +150,8 @@ static void gdk_qnxscreen_display_class_init(GdkQnxScreenDisplayClass* class)
     display_class->get_keymap = gdk_qnxscreen_keymap_get_keymap;
     display_class->beep = gdk_qnxscreen_display_beep;
     display_class->cairo_context_type = GDK_TYPE_QNXSCREEN_CAIRO_CONTEXT;
+    display_class->toplevel_type = GDK_TYPE_QNXSCREEN_TOPLEVEL;
+    display_class->popup_type = GDK_TYPE_QNXSCREEN_POPUP;
 }
 
 GdkDisplay* _gdk_qnxscreen_display_open(const gchar* display_name)
@@ -322,4 +323,10 @@ void gdk_qnxscreen_display_management_event(GdkDisplay* display)
                 break;
         }
     }
+}
+
+void gdk_qnxscreen_display_surface_destroyed(GdkDisplay* display, GdkSurface* surface)
+{
+    GDK_DEBUG(MISC, "%s surface destroyed event: %p", QNX_SCREEN, surface);
+    gdk_qnxscreen_device_seat_surface_destroyed(display, surface);
 }
