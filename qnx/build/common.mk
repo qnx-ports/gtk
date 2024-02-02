@@ -18,6 +18,11 @@ DIST_BASE := $(PROJECT_ROOT)/../../
 # a staging area by setting both INSTALL_ROOT_nto
 # and USE_INSTALL_ROOT
 INSTALL_ROOT ?= $(INSTALL_ROOT_$(OS))
+ifeq ($(INSTALL_ROOT),$(QNX_TARGET))
+  # Disallow installing GTK4 directly into SDP. GTK4 is a huge project and will be difficult to clean up
+  # In addition, having GTK4 in SDP will also interfere with new builds due to the installed pkg-config files.
+  $(error It is UNSUPPORTED to install GTK4 directly into SDP. Please set a staging installation path using INSTALL_ROOT_$(OS) and set USE_INSTALL_ROOT=true.)
+endif
 
 # A prefix path to use **on the target**. This is
 # different from INSTALL_ROOT, which refers to a
