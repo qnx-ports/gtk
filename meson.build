@@ -348,6 +348,15 @@ elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
   if not gtk_debug_cflags.contains('-DG_DISABLE_ASSERT')
     test_cflags += ['-Wnull-dereference'] # Too noisy when assertions are disabled
   endif
+
+  # On QNX 7.1.0, EGLNativeDisplayType is defined to be int, which
+  # is incompatible with the pointer size on 64-bit architectures.
+  # This causes a warning when converting from a gpointer to
+  # EGLNativeDisplayType, but this is not a problem since the
+  # platform is supposed to work with this smaller EGLNativeDisplayType.
+  if host_machine.system() == 'qnx'
+    test_cflags += ['-Wno-error=pointer-to-int-cast']
+  endif
 else
   test_cflags = []
 endif
