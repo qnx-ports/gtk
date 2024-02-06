@@ -1,4 +1,4 @@
-From fab86a54fdae32a19ae82cf2fbbffcf94e490b59 Mon Sep 17 00:00:00 2001
+From b7b6267a187e580fad6a79e059e9dc448bbb0b28 Mon Sep 17 00:00:00 2001
 From: Peter Cai <xicai@blackberry.com>
 Date: Mon, 15 Jan 2024 14:58:47 -0500
 Subject: [PATCH 2/2] gio: QNX's resolv.h does not include all necessary
@@ -9,7 +9,7 @@ Subject: [PATCH 2/2] gio: QNX's resolv.h does not include all necessary
  1 file changed, 4 insertions(+)
 
 diff --git a/gio/meson.build b/gio/meson.build
-index 54ebade9b..a08923da4 100644
+index 39d2f4d15..071f6bcf0 100644
 --- a/gio/meson.build
 +++ b/gio/meson.build
 @@ -49,6 +49,10 @@ if host_system != 'windows'

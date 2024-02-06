@@ -15,14 +15,13 @@ endian = 'little'
 growing_stack = false
 sys_lib_dir = qnx_target_bin_dir + '/lib'
 usr_lib_dir = qnx_target_bin_dir + '/usr/lib'
-socket_lib_dir = 'QNX_SOCKET_LIB_DIR'
 # Default QNX platform extensions (XOPEN etc.)
 c_args = '-D_QNX_SOURCE'
 cpp_args = '-D_QNX_SOURCE'
 
 [binaries]
-c = [qnx_host + '/usr/bin/nto' + target_arch + '-gcc', '-lgcc_s']
-cpp = [qnx_host + '/usr/bin/nto' + target_arch + '-g++', '-lgcc_s']
+c = [qnx_host + '/usr/bin/nto' + target_arch + '-gcc', PREPEND_C_CXXFLAGS]
+cpp = [qnx_host + '/usr/bin/nto' + target_arch + '-g++', PREPEND_C_CXXFLAGS]
 ar = qnx_host + '/usr/bin/nto'+target_arch+'-ar'
 ld = qnx_host + '/usr/bin/nto'+target_arch+'-ld'
 strip = qnx_host + '/usr/bin/nto'+target_arch+'-strip'

@@ -1,14 +1,14 @@
-From 34542338e0988ae779ad97cbb3a6921c441c9324 Mon Sep 17 00:00:00 2001
+From eceab76ff6c719940881050275179ce8eb4f221a Mon Sep 17 00:00:00 2001
 From: Aaron Ruby <aruby@blackberry.com>
 Date: Thu, 13 Jul 2023 18:06:35 -0400
 Subject: [PATCH] Modifications for QNX.
 
 ---
- meson.build | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ meson.build | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/meson.build b/meson.build
-index 7e4e0c10..6c3ba2e5 100644
+index 7e4e0c10..ece9ea7e 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -175,7 +175,7 @@ foreach cflag: common_cflags
@@ -20,18 +20,14 @@ index 7e4e0c10..6c3ba2e5 100644
    common_ldflags += cc.get_supported_link_arguments([ '-Wl,-Bsymbolic', '-Wl,-z,relro', '-Wl,-z,now', ])
  endif
  
-@@ -218,6 +218,11 @@ pango_deps += [glib_dep, gobject_dep, gio_dep]
- fribidi_dep = dependency('fribidi', version: fribidi_req_version,
+@@ -219,6 +219,7 @@ fribidi_dep = dependency('fribidi', version: fribidi_req_version,
                           default_options: ['docs=false'])
  pango_deps += fribidi_dep
-+## BEGIN QNX changes
-+libsocket_dep = dependency('libsocket')
-+## END QNX changes
-+pango_deps += libsocket_dep
-+
  
++
  thai_dep = dependency('libthai', version: libthai_req_version, required: get_option('libthai'))
  if thai_dep.found()
+   pango_conf.set('HAVE_LIBTHAI', 1)
 -- 
 2.34.1
 

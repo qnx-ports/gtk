@@ -44,12 +44,15 @@ export INSTALL_ROOT_WITH_PREFIX=$(INSTALL_ROOT)/$(CPUVARDIR)/$(PREFIX)
 export QNX_TARGET
 export CPUVARDIR
 
+# Prepended C/CPPFLAGS used in qnx_cross.cfg.in
+# -lgcc_s is needed to work around libm linkage errors when -Wl,--allow-shlib-undefined is supplied by Meson
+PREPEND_C_CXXFLAGS := -lgcc_s
+
 ifeq ($(USE_IOSOCK),true)
-    export QNX_SOCKET_LIB_DIR="$(QNX_TARGET)/$(CPUVARDIR)/io-sock/lib"
-    export QNX_SOCKET_INCLUDE_DIR="$(QNX_TARGET)/usr/include/io-sock"
-else
-    export QNX_SOCKET_LIB_DIR="$(QNX_TARGET)/$(CPUVARDIR)/lib"
-    export QNX_SOCKET_INCLUDE_DIR="$(QNX_TARGET)/usr/include"
+    # On QNX SDP 710, io-sock libraries and headers are located in a subfolder inside $QNX_TARGET.
+    # Instead of hacking meson.build of all projects to support that, we can simply prepend flags to prioritize linkage
+    # inside the io-sock subfolder(s).
+    PREPEND_C_CXXFLAGS += -L$(QNX_TARGET)/$(CPUVARDIR)/io-sock/lib -Wl,--as-needed -lsocket -Wl,--no-as-needed -I$(QNX_TARGET)/usr/include/io-sock
 endif
 
 # Meson flags (including passthrough for dependencies via meson wrap)
@@ -135,8 +138,8 @@ qnx_cross.cfg: $(PROJECT_ROOT)/qnx_cross.cfg.in
 	sed -i "s|TARGET_ARCH|$(CPU)|" $@
 	sed -i "s|CPUDIR|$(CPUVARDIR)|" $@
 	sed -i "s|QNX_TARGET_BIN_DIR|$(QNX_TARGET)/$(CPUVARDIR)|" $@
-	# TODO: Remove this and use libsocket.pc in meson.build files too
-	sed -i "s|QNX_SOCKET_LIB_DIR|$(QNX_SOCKET_LIB_DIR)|" $@
+	# PREPEND_C_CXXFLAGS need to be converted to Meson list format
+	sed -i "s|PREPEND_C_CXXFLAGS|$(foreach flag,$(PREPEND_C_CXXFLAGS),'$(flag)',)|" $@
 
 # Meson setup configures the ninja build file.
 # Reconfiguration is required if any of the prebuilt toolchain files change.
