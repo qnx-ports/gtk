@@ -48,14 +48,15 @@ export CPUVARDIR
 # -lgcc_s is needed to work around libm linkage errors when -Wl,--allow-shlib-undefined is supplied by Meson
 PREPEND_C_CXXFLAGS := -lgcc_s
 
-ifneq ($(wildcard $(QNX_TARGET)/$(CPUVARDIR)/io-sock),)
 ifeq ($(USE_IOSOCK),true)
+ifeq ($(wildcard $(QNX_TARGET)/$(CPUVARDIR)/io-sock),)
+    $(error USE_IOSOCK is defined but io-sock is not found inside SDP. Note that io-sock is already the default network stack since QNX SDP 8.0.0. For SDP 7.1.0 and earlier, please ensure io-sock is downloaded via QSC first.)
+endif
     $(info Linking to io-sock libsocket...)
     # On QNX SDP 710, io-sock libraries and headers are located in a subfolder inside $QNX_TARGET.
     # Instead of hacking meson.build of all projects to support that, we can simply prepend flags to prioritize linkage
     # inside the io-sock subfolder(s).
     PREPEND_C_CXXFLAGS += -L$(QNX_TARGET)/$(CPUVARDIR)/io-sock/lib -Wl,--as-needed -lsocket -Wl,--no-as-needed -I$(QNX_TARGET)/usr/include/io-sock
-endif
 endif
 
 # Meson flags (including passthrough for dependencies via meson wrap)
