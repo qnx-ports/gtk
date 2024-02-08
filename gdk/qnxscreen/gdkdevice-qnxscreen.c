@@ -233,32 +233,45 @@ void gdk_qnxscreen_device_seat_surface_destroyed(GdkDisplay* display, GdkSurface
     gdk_qnxscreen_device_surface_destroyed(qnx_screen_display->phys_touchscreen, surface);
 }
 
+static int screen_buttons[] = { 
+    SCREEN_LEFT_MOUSE_BUTTON,
+    SCREEN_MIDDLE_MOUSE_BUTTON,
+    SCREEN_RIGHT_MOUSE_BUTTON ,
+};
+
+static int gdk_buttons[] = { 
+    GDK_BUTTON_PRIMARY,
+    GDK_BUTTON_MIDDLE,
+    GDK_BUTTON_SECONDARY,
+};
+
+static int gdk_button_masks[] = {
+    GDK_BUTTON1_MASK,
+    GDK_BUTTON2_MASK,
+    GDK_BUTTON3_MASK,
+};
+
+static GdkModifierType gdk_qnxscreen_buttons_to_mask(int buttons)
+{
+    GdkModifierType ret = 0;
+    for (int i = 0; i < 3; i++) {
+        if (buttons & screen_buttons[i]) {
+            ret |= gdk_button_masks[i];
+        } else {
+            ret &= ~gdk_button_masks[i];
+        }
+    }
+    return ret;
+}
+
 static void emit_button_events(GdkDisplay* display, GdkDevice* device, GdkQnxScreenDevice* prev_pointer)
 {
     GDK_DEBUG(EVENTS, "%s handling pointer button event", QNX_SCREEN);
 
-    static int screen_buttons[] = { 
-        SCREEN_LEFT_MOUSE_BUTTON,
-        SCREEN_MIDDLE_MOUSE_BUTTON,
-        SCREEN_RIGHT_MOUSE_BUTTON ,
-    };
-
-    static int gdk_buttons[] = { 
-        GDK_BUTTON_PRIMARY,
-        GDK_BUTTON_MIDDLE,
-        GDK_BUTTON_SECONDARY,
-    };
-
-    static int gdk_button_masks[] = {
-        GDK_BUTTON1_MASK,
-        GDK_BUTTON2_MASK,
-        GDK_BUTTON3_MASK,
-    };
-
     GdkQnxScreenDevice* pointer = GDK_QNXSCREEN_DEVICE(device);
     GdkEvent* event = NULL;
     int event_type = 0;
-    int button_mask = 0;
+    GdkModifierType button_mask = gdk_qnxscreen_buttons_to_mask(pointer->buttons);
 
     for (int i=0; i<3; i++)
     {
@@ -268,9 +281,6 @@ static void emit_button_events(GdkDisplay* display, GdkDevice* device, GdkQnxScr
         }
 
         event_type = (pointer->buttons & screen_buttons[i]) == 0 ? GDK_BUTTON_RELEASE : GDK_BUTTON_PRESS;
-        if (event_type == GDK_BUTTON_RELEASE) {
-            button_mask = gdk_button_masks[i];
-        }        
 
         /* create button event and deliver */
         event = gdk_button_event_new (
@@ -279,7 +289,8 @@ static void emit_button_events(GdkDisplay* display, GdkDevice* device, GdkQnxScr
             device,
             NULL,
             GDK_QNXSCREEN_TIME(),
-            button_mask,                              // todo Record and set key modifiers (CTRL, ALT, etc.) here.
+            /* Just before a button is released, its mask shall still be set */
+            button_mask | ((event_type == GDK_BUTTON_RELEASE) ? gdk_button_masks[i] : 0),
             gdk_buttons[i],
             pointer->window_pos[0],
             pointer->window_pos[1],
@@ -311,7 +322,7 @@ static void emit_motion_event(GdkDisplay* display, GdkDevice* device)
         device,
         NULL,
         GDK_QNXSCREEN_TIME(),
-        0,                              // todo Record and set key modifiers (CTRL, ALT, etc.) here.
+        gdk_qnxscreen_buttons_to_mask(pointer->buttons),
         pointer->window_pos[0],
         pointer->window_pos[1],
         NULL);
@@ -341,7 +352,7 @@ static void emit_surface_crossing_event(GdkDisplay* display, GdkQnxScreenDevice*
             prev_pointer->surface,
             qnx_screen_display->core_pointer,
             GDK_QNXSCREEN_TIME(),
-            0,                          // todo Record and set key modifiers (CTRL, ALT, etc.) here.
+            gdk_qnxscreen_buttons_to_mask(pointer->buttons),
             prev_pointer->window_pos[0],
             prev_pointer->window_pos[1],
             GDK_CROSSING_NORMAL,
@@ -356,7 +367,7 @@ static void emit_surface_crossing_event(GdkDisplay* display, GdkQnxScreenDevice*
         pointer->surface,
         qnx_screen_display->core_pointer,
         GDK_QNXSCREEN_TIME(),
-        0,                          // todo Record and set key modifiers (CTRL, ALT, etc.) here.
+        gdk_qnxscreen_buttons_to_mask(pointer->buttons),
         pointer->window_pos[0], 
         pointer->window_pos[1],
         GDK_CROSSING_NORMAL,
