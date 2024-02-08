@@ -37,7 +37,9 @@ static void gdk_qnxscreen_cairo_context_end_frame(GdkDrawContext* draw_context, 
 {
     int num_rects = 0;
     cairo_rectangle_int_t* damage_rects = NULL;
+    GdkQnxScreenCairoContext* qnx_screen_cairo_context = GDK_QNXSCREEN_CAIRO_CONTEXT(draw_context);
     GdkSurface* surface = gdk_draw_context_get_surface(draw_context);
+    GdkQnxScreenSurface* qnx_screen_surface = GDK_QNXSCREEN_SURFACE(surface);
 
     /* determine number of damaged areas that require repaint */
     num_rects = cairo_region_num_rectangles (painted);
@@ -56,8 +58,22 @@ static void gdk_qnxscreen_cairo_context_end_frame(GdkDrawContext* draw_context, 
         }
 
         /* draw the cairo buffer to the screen */
-        gdk_qnxscreen_surface_post_screen(surface, num_rects, damage_rects);
+        gdk_qnxscreen_surface_post_screen(surface, qnx_screen_cairo_context->active_buffer_idx, num_rects, damage_rects);
 
+        /* copy all drawn regions to the next rendering buffer
+         * this is required as per QNX screen handbook, since it does not guarantee
+         * only the dirty regions are flushed to screen
+         */
+        int new_buffer_idx = (qnx_screen_cairo_context->active_buffer_idx + 1) % QNXSCREEN_NUM_BUFFERS;
+        cairo_t* cr = cairo_create(qnx_screen_surface->cairo_surfaces[new_buffer_idx]);
+        cairo_set_source_surface(cr, qnx_screen_surface->cairo_surfaces[qnx_screen_cairo_context->active_buffer_idx], 0, 0);
+        /* only copy dirty regions for performance reasons */
+        gdk_cairo_region(cr, painted);
+        cairo_clip(cr);
+        cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+        cairo_paint(cr);
+        cairo_destroy(cr);
+        qnx_screen_cairo_context->active_buffer_idx = new_buffer_idx;
     } else {
         g_critical (G_STRLOC ": failed to alloca memory: %s", strerror(errno));
     }
@@ -70,8 +86,7 @@ static cairo_t* gdk_qnxscreen_cairo_context_cairo_create(GdkCairoContext* contex
     GdkQnxScreenCairoContext* qnx_screen_cairo_context = GDK_QNXSCREEN_CAIRO_CONTEXT(context);
     GdkSurface* surface = gdk_draw_context_get_surface(GDK_DRAW_CONTEXT(qnx_screen_cairo_context));
     GdkQnxScreenSurface* qnx_screen_surface = GDK_QNXSCREEN_SURFACE(surface);
-    qnx_screen_cairo_context->paint_surface = cairo_surface_reference(qnx_screen_surface->cairo_surface);
-    return cairo_create (qnx_screen_cairo_context->paint_surface);
+    return cairo_create (qnx_screen_surface->cairo_surfaces[qnx_screen_cairo_context->active_buffer_idx]);
 }
 
 static void gdk_qnxscreen_cairo_context_class_init(GdkQnxScreenCairoContextClass* class)
@@ -91,4 +106,5 @@ static void gdk_qnxscreen_cairo_context_class_init(GdkQnxScreenCairoContextClass
 static void gdk_qnxscreen_cairo_context_init(GdkQnxScreenCairoContext* self)
 {
     GDK_DEBUG(MISC, "%s initializing GdkQnxScreenCairoContext", QNX_SCREEN);
+    self->active_buffer_idx = 0;
 }

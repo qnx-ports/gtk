@@ -26,10 +26,10 @@
 
 G_DEFINE_TYPE (GdkQnxScreenSurface, gdk_qnxscreen_surface, GDK_TYPE_SURFACE)
 
-void gdk_qnxscreen_surface_post_screen(GdkSurface* surface, int num_rects, cairo_rectangle_int_t* damaged_rects)
+void gdk_qnxscreen_surface_post_screen(GdkSurface* surface, int buffer_idx, int num_rects, cairo_rectangle_int_t* damaged_rects)
 {
     GdkQnxScreenSurface* qnx_screen_surface = GDK_QNXSCREEN_SURFACE(surface);
-    if (screen_post_window (qnx_screen_surface->window_handle, qnx_screen_surface->buffer_handle, num_rects, (int*)damaged_rects, 0) == -1)
+    if (screen_post_window (qnx_screen_surface->window_handle, qnx_screen_surface->buffer_handles[buffer_idx], num_rects, (int*)damaged_rects, 0) == -1)
     {
         g_critical (G_STRLOC ": failed to post window: %s", strerror(errno));
     }
@@ -92,16 +92,21 @@ static void gdk_qnxscreen_surface_finalize (GObject* object)
         impl->session_handle = NULL;
     }
 
-    if (impl->cairo_surface != NULL) {
-        cairo_surface_destroy(impl->cairo_surface);
-        impl->cairo_surface = NULL;
+    for (int i = 0; i < QNXSCREEN_NUM_BUFFERS; i++) {
+        if (impl->cairo_surfaces[i] != NULL) {
+            cairo_surface_destroy(impl->cairo_surfaces[i]);
+            impl->cairo_surfaces[i] = NULL;
+        }
     }
 
     if (impl->window_handle != NULL) {
         screen_destroy_window_buffers(impl->window_handle);
         screen_destroy_window(impl->window_handle);
         impl->window_handle = NULL;
-        impl->buffer_handle = NULL;
+        
+        for (int i = 0; i < QNXSCREEN_NUM_BUFFERS; i++) {
+            impl->buffer_handles[i] = NULL;
+        }
     }
 
     unsigned long long qval = impl->zorder;
@@ -392,18 +397,21 @@ static void gdk_qnxscreen_surface_init(GdkQnxScreenSurface* surface)
     GDK_DEBUG(MISC, "%s initializing GdkQnxScreenSurface: %p", QNX_SCREEN, surface);
 
     surface->window_handle = NULL;
-    surface->buffer_handle = NULL;
     surface->session_handle = NULL;
-    surface->cairo_surface = NULL;
     surface->visible = FALSE;
     surface->win_width = surface->win_height = 0;
     surface->buf_width = surface->buf_height = 0;
-    surface->buf_ptr = NULL;
     surface->zorder = 0;
 
     surface->zorders = g_queue_new();
     surface->active_touch_table = g_hash_table_new(NULL, NULL);
     surface->refocussed_touch_table = g_hash_table_new(NULL, NULL);
+    
+    for (int i = 0; i < QNXSCREEN_NUM_BUFFERS; i++) {
+        surface->buffer_handles[i] = NULL;
+        surface->cairo_surfaces[i] = NULL;
+        surface->buf_ptrs[i] = NULL;
+    }
 }
 
 static void gdk_qnxscreen_surface_class_init(GdkQnxScreenSurfaceClass* class)
@@ -510,9 +518,8 @@ static void gdk_qnxscreen_create_window (GdkQnxScreenSurface* qnx_screen_surface
     GDK_DEBUG(MISC, "%s successfully set screen format to 0x%04X", QNX_SCREEN, SCREEN_PROPERTY_FORMAT);
 
     /* create the window buffer */
-    const int num_buffers = 1;
-    GDK_DEBUG(MISC, "%s creating %d window buffers (default size)", QNX_SCREEN, num_buffers);
-    ret = screen_create_window_buffers(qnx_screen_surface->window_handle, num_buffers);
+    GDK_DEBUG(MISC, "%s creating %d window buffers (default size)", QNX_SCREEN, QNXSCREEN_NUM_BUFFERS);
+    ret = screen_create_window_buffers(qnx_screen_surface->window_handle, QNXSCREEN_NUM_BUFFERS);
     if (ret < 0) {
         g_critical (G_STRLOC ": failed to create window buffers: %s", strerror(errno));
     }
@@ -520,7 +527,7 @@ static void gdk_qnxscreen_create_window (GdkQnxScreenSurface* qnx_screen_surface
     GDK_DEBUG(MISC, "%s successfully created screen buffer", QNX_SCREEN);
 
     /* get screen buffer */
-    ret = screen_get_window_property_pv(qnx_screen_surface->window_handle, SCREEN_PROPERTY_BUFFERS, (void **)&qnx_screen_surface->buffer_handle);
+    ret = screen_get_window_property_pv(qnx_screen_surface->window_handle, SCREEN_PROPERTY_BUFFERS, (void **) qnx_screen_surface->buffer_handles);
     if (ret < 0) {
         g_critical (G_STRLOC ": failed to get window buffer: %s", strerror(errno));
         return;
@@ -530,7 +537,7 @@ static void gdk_qnxscreen_create_window (GdkQnxScreenSurface* qnx_screen_surface
 
     /* Get the buffer size */
     int buf_size[2];
-    ret = screen_get_buffer_property_iv(qnx_screen_surface->buffer_handle, SCREEN_PROPERTY_BUFFER_SIZE, buf_size);
+    ret = screen_get_buffer_property_iv(qnx_screen_surface->buffer_handles[0], SCREEN_PROPERTY_BUFFER_SIZE, buf_size);
     if (ret < 0) {
         g_critical (G_STRLOC ": screen_get_buffer_property_iv(SCREEN_PROPERTY_BUFFER_SIZE): %s", strerror(errno));
         return;
@@ -547,17 +554,8 @@ static void gdk_qnxscreen_create_window (GdkQnxScreenSurface* qnx_screen_surface
     GDK_DEBUG(MISC, "%s successfully created window buffers, size: %dx%d (default)",
         QNX_SCREEN, qnx_screen_surface->buf_width, qnx_screen_surface->buf_height);
 
-    /* get pointer to buffer */
-    ret = screen_get_buffer_property_pv(qnx_screen_surface->buffer_handle, SCREEN_PROPERTY_POINTER, &qnx_screen_surface->buf_ptr);
-    if (ret < 0) {
-        g_critical (G_STRLOC ": failed to get buffer pointer: %s", strerror(errno));
-        return;
-    }
-
-    GDK_DEBUG(MISC, "%s successfully retrievd the screen buffer pointer", QNX_SCREEN);
-
     /* get buffer stride */
-    ret = screen_get_buffer_property_iv(qnx_screen_surface->buffer_handle, SCREEN_PROPERTY_STRIDE, &qnx_screen_surface->buf_stride);
+    ret = screen_get_buffer_property_iv(qnx_screen_surface->buffer_handles[0], SCREEN_PROPERTY_STRIDE, &qnx_screen_surface->buf_stride);
     if (ret < 0) {
         g_critical (G_STRLOC ": failed to get buffer stride: %s", strerror(errno));
         return;
@@ -565,15 +563,26 @@ static void gdk_qnxscreen_create_window (GdkQnxScreenSurface* qnx_screen_surface
 
     GDK_DEBUG(MISC, "%s buffer stride: %d", QNX_SCREEN, qnx_screen_surface->buf_stride);
 
-    /* create the cairo surface */
-    qnx_screen_surface->cairo_surface = cairo_image_surface_create_for_data(qnx_screen_surface->buf_ptr,
-        CAIRO_FORMAT_ARGB32, qnx_screen_surface->buf_width, qnx_screen_surface->buf_height, qnx_screen_surface->buf_stride);
-    if (qnx_screen_surface->cairo_surface == NULL) {
-        g_critical (G_STRLOC ": failed to create cairo surface: %s", strerror(errno));
-        return;
-    }
+    /* get pointer to buffer */
+    for (int i = 0; i < QNXSCREEN_NUM_BUFFERS; i++) {
+        ret = screen_get_buffer_property_pv(qnx_screen_surface->buffer_handles[i], SCREEN_PROPERTY_POINTER, &qnx_screen_surface->buf_ptrs[i]);
+        if (ret < 0) {
+            g_critical (G_STRLOC ": failed to get buffer pointer: %s", strerror(errno));
+            return;
+        }
 
-    GDK_DEBUG(MISC, "%s created cairo surface", QNX_SCREEN);
+        GDK_DEBUG(MISC, "%s successfully retrievd the screen buffer pointer %d", QNX_SCREEN, i);
+
+        /* create the cairo surface */
+        qnx_screen_surface->cairo_surfaces[i] = cairo_image_surface_create_for_data(qnx_screen_surface->buf_ptrs[i],
+            CAIRO_FORMAT_ARGB32, qnx_screen_surface->buf_width, qnx_screen_surface->buf_height, qnx_screen_surface->buf_stride);
+        if (qnx_screen_surface->cairo_surfaces[i] == NULL) {
+            g_critical (G_STRLOC ": failed to create cairo surface: %s", strerror(errno));
+            return;
+        }
+
+        GDK_DEBUG(MISC, "%s created cairo surface %d", QNX_SCREEN, i);
+    }
 
     /* create a screen session */
     ret = screen_create_session_type(&qnx_screen_surface->session_handle, qnx_screen_display->qnxscreen_context, SCREEN_EVENT_POINTER);

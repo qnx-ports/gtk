@@ -29,6 +29,7 @@
 #include "gdksurface-qnxscreen-class.h"
 
 #define MAX_QNXSCREEN_NAME_LEN (128)
+#define QNXSCREEN_NUM_BUFFERS 2
 
 struct _GdkQnxScreenSurface
 {
@@ -36,9 +37,9 @@ struct _GdkQnxScreenSurface
 
     screen_context_t context_handle;
     screen_window_t window_handle;
-    screen_buffer_t buffer_handle;
+    screen_buffer_t buffer_handles[QNXSCREEN_NUM_BUFFERS];
     screen_session_t session_handle;
-    cairo_surface_t* cairo_surface;
+    cairo_surface_t* cairo_surfaces[QNXSCREEN_NUM_BUFFERS];
     gboolean visible;
     /* Window */
     int win_width;
@@ -49,7 +50,7 @@ struct _GdkQnxScreenSurface
     int buf_width;
     int buf_height;
     int buf_stride;
-    void* buf_ptr;
+    void* buf_ptrs[QNXSCREEN_NUM_BUFFERS];
 
     /* Current zorder of this window */
     int zorder;

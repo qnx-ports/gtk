@@ -27,7 +27,7 @@
 struct _GdkQnxScreenCairoContext
 {
     GdkCairoContext parent_instance;
-    cairo_surface_t* paint_surface;
+    int active_buffer_idx;
 };
 
 struct _GdkQnxScreenCairoContextClass
