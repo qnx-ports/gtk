@@ -24,7 +24,7 @@ qnxscreen_public_headers = files(
 
 install_headers(qnxscreen_public_headers, subdir: 'gtk-4.0/gdk/qnxscreen/')
 
-qnx_screen_lib = cc.find_library('libscreen', required: true, dirs: [meson.get_external_property('usr_lib_dir')])
+qnx_screen_lib = cc.find_library('screen', required: true)
 
 gdk_qnxscreen_deps = [
   qnx_screen_lib

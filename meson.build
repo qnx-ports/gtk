@@ -108,6 +108,7 @@ os_unix   = false
 os_linux  = false
 os_win32  = false
 os_darwin = false
+os_qnx    = false
 
 # Some windowing system backends depend on the platform we're
 # building for, so we need to ensure they are disabled; in other
@@ -119,6 +120,8 @@ elif host_machine.system() == 'windows'
   os_win32 = true
 elif host_machine.system() == 'linux'
   os_linux = true
+elif host_machine.system() == 'qnx'
+  os_qnx = true
 endif
 os_unix = not os_win32
 
@@ -134,6 +137,14 @@ if os_win32
   x11_enabled = false
 else
   win32_enabled = false
+endif
+
+if os_qnx
+  wayland_enabled = false
+  vulkan_enabled = false
+  x11_enabled = false
+else
+  qnxscreen_enabled = false
 endif
 
 gtk_prefix = get_option('prefix')
