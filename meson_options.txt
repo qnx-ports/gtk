@@ -25,7 +25,7 @@ option('macos-backend',
        value: true,
        description : 'Enable the macOS gdk backend (only when building on macOS)')
 
-option('qnxscreen_backend',
+option('qnxscreen-backend',
 	type: 'boolean',
 	value: true,
 	description : 'Enable the QNX Screen backend')

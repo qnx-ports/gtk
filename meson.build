@@ -102,7 +102,7 @@ broadway_enabled = get_option('broadway-backend')
 macos_enabled    = get_option('macos-backend')
 win32_enabled    = get_option('win32-backend')
 vulkan_enabled   = get_option('vulkan')
-qnxscreen_enabled = get_option('qnxscreen_backend')
+qnxscreen_enabled = get_option('qnxscreen-backend')
 
 os_unix   = false
 os_linux  = false
