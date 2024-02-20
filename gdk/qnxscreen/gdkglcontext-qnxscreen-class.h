@@ -21,14 +21,14 @@
 
 #include <gdk/gdk.h>
 
-typedef struct _GdkQnxScreenGLContext		GdkQnxScreenGLContext;
-typedef struct _GdkQnxScreenGLContextClass	GdkQnxScreenGLContextClass;
+typedef struct _GdkQnxScreenGLContext GdkQnxScreenGLContext;
+typedef struct _GdkQnxScreenGLContextClass GdkQnxScreenGLContextClass;
 
-#define GDK_TYPE_QNXSCREEN_GL_CONTEXT		(gdk_qnxscreen_gl_context_get_type ())
-#define GDK_QNXSCREEN_GL_CONTEXT(obj)		(G_TYPE_CHECK_INSTANCE_CAST ((obj), GDK_TYPE_QNXSCREEN_GL_CONTEXT, GdkQnxScreenGLContext))
-#define GDK_QNXSCREEN_IS_GL_CONTEXT(obj)	(G_TYPE_CHECK_INSTANCE_TYPE ((obj), GDK_TYPE_QNXSCREEN_GL_CONTEXT))
+#define GDK_TYPE_QNXSCREEN_GL_CONTEXT (gdk_qnxscreen_gl_context_get_type ())
+#define GDK_QNXSCREEN_GL_CONTEXT(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GDK_TYPE_QNXSCREEN_GL_CONTEXT, GdkQnxScreenGLContext))
+#define GDK_QNXSCREEN_IS_GL_CONTEXT(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GDK_TYPE_QNXSCREEN_GL_CONTEXT))
 
 GType gdk_qnxscreen_gl_context_get_type (void);
-GdkGLContext* gdk_qnxscreen_display_init_gl (GdkDisplay* display, GError** error);
+GdkGLContext *gdk_qnxscreen_display_init_gl (GdkDisplay *display, GError **error);
 
-#endif 
+#endif

@@ -24,21 +24,21 @@
 #include "gdk/gdkkeysprivate.h"
 #include "gdk/gdkkeysyms.h"
 
-typedef struct 
+typedef struct
 {
-    GdkKeymap parent_instance;
+  GdkKeymap parent_instance;
 } GdkQnxScreenKeymap;
 
 typedef struct
 {
-    GdkKeymapClass keymap_class;
+  GdkKeymapClass keymap_class;
 } GdkQnxScreenKeymapClass;
 
-#define GDK_TYPE_QNXSCREEN_KEYMAP          (gdk_qnxscreen_keymap_get_type ())
-#define GDK_QNXSCREEN_KEYMAP(object)       (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_QNXSCREEN_KEYMAP, GdkQnxScreenKeymap))
-#define GDK_IS_QNXSCREEN_KEYMAP(object)    (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_QNXSCREEN_KEYMAP))
+#define GDK_TYPE_QNXSCREEN_KEYMAP (gdk_qnxscreen_keymap_get_type ())
+#define GDK_QNXSCREEN_KEYMAP(object) (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_QNXSCREEN_KEYMAP, GdkQnxScreenKeymap))
+#define GDK_IS_QNXSCREEN_KEYMAP(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_QNXSCREEN_KEYMAP))
 
 GType gdk_qnxscreen_keymap_get_type (void);
-GdkKeymap* gdk_qnxscreen_keymap_get_keymap(GdkDisplay* display);
+GdkKeymap *gdk_qnxscreen_keymap_get_keymap (GdkDisplay *display);
 
 #endif

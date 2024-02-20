@@ -25,12 +25,12 @@
 
 struct _GdkQnxScreenGLContext
 {
-    GdkGLContext parent_instance;
+  GdkGLContext parent_instance;
 };
 
 struct _GdkQnxScreenGLContextClass
 {
-    GdkGLContextClass parent_class;
+  GdkGLContextClass parent_class;
 };
 
-#endif 
+#endif

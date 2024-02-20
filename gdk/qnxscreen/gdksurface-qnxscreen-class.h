@@ -25,15 +25,15 @@
 typedef struct _GdkQnxScreenSurface GdkQnxScreenSurface;
 typedef struct _GdkQnxScreenSurfaceClass GdkQnxScreenSurfaceClass;
 
-#define GDK_TYPE_QNXSCREEN_SURFACE              (gdk_qnxscreen_surface_get_type ())
-#define GDK_QNXSCREEN_SURFACE(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_QNXSCREEN_SURFACE, GdkQnxScreenSurface))
-#define GDK_QNXSCREEN_SURFACE_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_QNXSCREEN_SURFACE, GdkQnxScreenSurfaceClass))
-#define GDK_IS_QNXSCREEN_SURFACE(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_QNXSCREEN_SURFACE))
-#define GDK_IS_QNXSCREEN_SURFACE_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_QNXSCREEN_SURFACE))
-#define GDK_QNXSCREEN_SURFACE_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_QNXSCREEN_SURFACE, GdkQnxScreenSurfaceClass))
+#define GDK_TYPE_QNXSCREEN_SURFACE (gdk_qnxscreen_surface_get_type ())
+#define GDK_QNXSCREEN_SURFACE(object) (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_QNXSCREEN_SURFACE, GdkQnxScreenSurface))
+#define GDK_QNXSCREEN_SURFACE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_QNXSCREEN_SURFACE, GdkQnxScreenSurfaceClass))
+#define GDK_IS_QNXSCREEN_SURFACE(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_QNXSCREEN_SURFACE))
+#define GDK_IS_QNXSCREEN_SURFACE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_QNXSCREEN_SURFACE))
+#define GDK_QNXSCREEN_SURFACE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_QNXSCREEN_SURFACE, GdkQnxScreenSurfaceClass))
 
 GType gdk_qnxscreen_surface_get_type (void);
-void gdk_qnxscreen_surface_post_screen(GdkSurface* surface, int buffer_idx, int num_rects, cairo_rectangle_int_t* damaged_rects);
+void gdk_qnxscreen_surface_post_screen (GdkSurface *surface, int buffer_idx, int num_rects, cairo_rectangle_int_t *damaged_rects);
 
 typedef struct _GdkQnxScreenToplevel GdkQnxScreenToplevel;
 typedef struct _GdkQnxScreenToplevelClass GdkQnxScreenToplevelClass;
@@ -41,7 +41,7 @@ typedef struct _GdkQnxScreenToplevelClass GdkQnxScreenToplevelClass;
 #define GDK_TYPE_QNXSCREEN_TOPLEVEL (gdk_qnxscreen_toplevel_get_type ())
 
 GType gdk_qnxscreen_toplevel_get_type (void);
-void gdk_qnxscreen_toplevel_iface_init(GdkToplevelInterface* iface);
+void gdk_qnxscreen_toplevel_iface_init (GdkToplevelInterface *iface);
 
 typedef struct _GdkQnxScreenPopup GdkQnxScreenPopup;
 typedef struct _GdkQnxScreenPopupClass GdkQnxScreenPopupClass;
@@ -49,6 +49,6 @@ typedef struct _GdkQnxScreenPopupClass GdkQnxScreenPopupClass;
 #define GDK_TYPE_QNXSCREEN_POPUP (gdk_qnxscreen_popup_get_type ())
 
 GType gdk_qnxscreen_popup_get_type (void);
-void gdk_qnxscreen_popup_iface_init (GdkPopupInterface* iface);
+void gdk_qnxscreen_popup_iface_init (GdkPopupInterface *iface);
 
 #endif

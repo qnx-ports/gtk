@@ -21,6 +21,6 @@
 
 #include "gdk/gdk.h"
 
-GdkDisplay* _gdk_qnxscreen_display_open (const gchar *display_name);
+GdkDisplay *_gdk_qnxscreen_display_open (const gchar *display_name);
 
 #endif

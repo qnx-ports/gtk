@@ -20,21 +20,21 @@
 #define __GDK_QNXSCREEN_MONITOR_DATA_H__
 
 #include "gdk/gdk.h"
-#include "gdk/gdkmonitorprivate.h"
 #include "gdk/gdkdebugprivate.h"
+#include "gdk/gdkmonitorprivate.h"
 #include "gdkmonitor-qnxscreen-class.h"
 #include <screen/screen.h>
 
 struct _GdkQnxScreenMonitor
 {
-    GdkMonitor parent;
-    screen_display_t display_handle;
-    int display_id;
+  GdkMonitor parent;
+  screen_display_t display_handle;
+  int display_id;
 };
 
 struct _GdkQnxScreenMonitorClass
 {
-    GdkMonitorClass parent_class;
+  GdkMonitorClass parent_class;
 };
 
 #endif

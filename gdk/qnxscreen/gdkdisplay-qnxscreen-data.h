@@ -19,51 +19,51 @@
 #ifndef __GDK_QNXSCREEN_DISPLAY_DATA_H__
 #define __GDK_QNXSCREEN_DISPLAY_DATA_H__
 
-#include "gio/gio.h"
-#include <screen/screen.h>
-#include "glib.h"
-#include "gdk/gdkdisplayprivate.h"
 #include "gdk/gdkdebugprivate.h"
-#include "gdk/gdkseatdefaultprivate.h"
+#include "gdk/gdkdisplayprivate.h"
 #include "gdk/gdkkeysprivate.h"
+#include "gdk/gdkseatdefaultprivate.h"
 #include "gdk/gdksurfaceprivate.h"
 #include "gdkdisplay-qnxscreen-class.h"
+#include "gio/gio.h"
+#include "glib.h"
+#include <screen/screen.h>
 
 struct _GdkQnxScreenDisplay
 {
-    GdkDisplay parent_instance;    
-    GListStore* monitors;
-    /* Logical devices */
-    GdkDevice* core_pointer;
-    GdkDevice* core_keyboard;
-    /* Physical devices */
-    GdkDevice* phys_pointer;
-    GdkDevice* phys_keyboard;
-    GdkDevice* phys_touchscreen;
-    GdkSeat* seat;
-    GSource* event_source;
-    GdkKeymap* keymap;
-    GdkSurface* focused_surface;
-    screen_context_t qnxscreen_context;
-    screen_event_t event;
-    GHashTable* surface_window_table;
+  GdkDisplay parent_instance;
+  GListStore *monitors;
+  /* Logical devices */
+  GdkDevice *core_pointer;
+  GdkDevice *core_keyboard;
+  /* Physical devices */
+  GdkDevice *phys_pointer;
+  GdkDevice *phys_keyboard;
+  GdkDevice *phys_touchscreen;
+  GdkSeat *seat;
+  GSource *event_source;
+  GdkKeymap *keymap;
+  GdkSurface *focused_surface;
+  screen_context_t qnxscreen_context;
+  screen_event_t event;
+  GHashTable *surface_window_table;
 
-    /* A queue of signed integers. Used to track zorders
-     * of all top-level windows in this GdkDisplay */
-    GQueue* zorders;
+  /* A queue of signed integers. Used to track zorders
+   * of all top-level windows in this GdkDisplay */
+  GQueue *zorders;
 
-    /* Screen does not provide a unique ID for individual touch sequences
-     * (i.e. BEGIN/UPDATE/END sequences). It provides TOUCH_ID, the ID of the
-     * contact point in multi-touch situations, and SEQUENCE_ID, an always
-     * incrementing number for a given TOUCH_ID. Generate our own touch
-     * sequence numbers unique to gestures on a given surface.
-     */
-    int next_touch_sequence;
+  /* Screen does not provide a unique ID for individual touch sequences
+   * (i.e. BEGIN/UPDATE/END sequences). It provides TOUCH_ID, the ID of the
+   * contact point in multi-touch situations, and SEQUENCE_ID, an always
+   * incrementing number for a given TOUCH_ID. Generate our own touch
+   * sequence numbers unique to gestures on a given surface.
+   */
+  int next_touch_sequence;
 };
 
 struct _GdkQnxScreenDisplayClass
 {
-    GdkDisplayClass parent_class;
+  GdkDisplayClass parent_class;
 };
 
 #endif

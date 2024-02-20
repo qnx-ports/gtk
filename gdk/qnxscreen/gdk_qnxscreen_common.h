@@ -20,6 +20,6 @@
 #define __GDK_QNXSCREEN_COMMON_H__
 
 #define QNX_SCREEN "GDK_QNXSCREEN:"
-#define GDK_QNXSCREEN_TIME() (ClockCycles() >> 32)
+#define GDK_QNXSCREEN_TIME() (ClockCycles () >> 32)
 
 #endif

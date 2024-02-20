@@ -26,13 +26,13 @@
 
 struct _GdkQnxScreenCairoContext
 {
-    GdkCairoContext parent_instance;
-    int active_buffer_idx;
+  GdkCairoContext parent_instance;
+  int active_buffer_idx;
 };
 
 struct _GdkQnxScreenCairoContextClass
 {
-    GdkCairoContextClass parent_class;
+  GdkCairoContextClass parent_class;
 };
 
 #endif

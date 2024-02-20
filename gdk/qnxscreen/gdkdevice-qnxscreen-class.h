@@ -24,22 +24,21 @@
 typedef struct _GdkQnxScreenDevice GdkQnxScreenDevice;
 typedef struct _GdkQnxScreenDeviceClass GdkQnxScreenDeviceClass;
 
-#define GDK_TYPE_QNXSCREEN_DEVICE         (gdk_qnxscreen_device_get_type ())
-#define GDK_QNXSCREEN_DEVICE(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), GDK_TYPE_QNXSCREEN_DEVICE, GdkQnxScreenDevice))
-#define GDK_QNXSCREEN_DEVICE_CLASS(c)     (G_TYPE_CHECK_CLASS_CAST ((c), GDK_TYPE_QNXSCREEN_DEVICE, GdkQnxScreenDeviceClass))
-#define GDK_IS_QNXSCREEN_DEVICE(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), GDK_TYPE_QNXSCREEN_DEVICE))
-#define GDK_IS_QNXSCREEN_DEVICE_CLASS(c)  (G_TYPE_CHECK_CLASS_TYPE ((c), GDK_TYPE_QNXSCREEN_DEVICE))
+#define GDK_TYPE_QNXSCREEN_DEVICE (gdk_qnxscreen_device_get_type ())
+#define GDK_QNXSCREEN_DEVICE(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), GDK_TYPE_QNXSCREEN_DEVICE, GdkQnxScreenDevice))
+#define GDK_QNXSCREEN_DEVICE_CLASS(c) (G_TYPE_CHECK_CLASS_CAST ((c), GDK_TYPE_QNXSCREEN_DEVICE, GdkQnxScreenDeviceClass))
+#define GDK_IS_QNXSCREEN_DEVICE(o) (G_TYPE_CHECK_INSTANCE_TYPE ((o), GDK_TYPE_QNXSCREEN_DEVICE))
+#define GDK_IS_QNXSCREEN_DEVICE_CLASS(c) (G_TYPE_CHECK_CLASS_TYPE ((c), GDK_TYPE_QNXSCREEN_DEVICE))
 #define GDK_QNXSCREEN_DEVICE_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), GDK_TYPE_QNXSCREEN_DEVICE, GdkQnxScreenDeviceClass))
 
-GType gdk_qnxscreen_device_get_type(void);
+GType gdk_qnxscreen_device_get_type (void);
 
-
-int gdk_qnxscreen_device_init_seat(GdkDisplay* display);
-void gdk_qnxscreen_device_pointer_event(GdkDisplay* display);
-void gdk_qnxscreen_device_keyboard_event(GdkDisplay* display);
-void gdk_qnxscreen_device_touch_event(GdkDisplay* display, int type);
-void gdk_qnxscreen_inputcontrol_event(GdkDisplay* display, int subtype);
-void gdk_qnxscreen_device_query_state(GdkDevice* device, GdkSurface* surface, double* win_x, double* win_y, GdkModifierType* mask);
-void gdk_qnxscreen_device_seat_surface_destroyed(GdkDisplay* display, GdkSurface* surface);
+int gdk_qnxscreen_device_init_seat (GdkDisplay *display);
+void gdk_qnxscreen_device_pointer_event (GdkDisplay *display);
+void gdk_qnxscreen_device_keyboard_event (GdkDisplay *display);
+void gdk_qnxscreen_device_touch_event (GdkDisplay *display, int type);
+void gdk_qnxscreen_inputcontrol_event (GdkDisplay *display, int subtype);
+void gdk_qnxscreen_device_query_state (GdkDevice *device, GdkSurface *surface, double *win_x, double *win_y, GdkModifierType *mask);
+void gdk_qnxscreen_device_seat_surface_destroyed (GdkDisplay *display, GdkSurface *surface);
 
 #endif

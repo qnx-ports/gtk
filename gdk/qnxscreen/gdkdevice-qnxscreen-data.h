@@ -19,24 +19,24 @@
 #ifndef __GDK_QNXSCREEN_DEVICE_DATA_H__
 #define __GDK_QNXSCREEN_DEVICE_DATA_H__
 
-#include <screen/screen.h>
 #include "gdk/gdk.h"
 #include "gdk/gdkdeviceprivate.h"
 #include "gdkdevice-qnxscreen-class.h"
+#include <screen/screen.h>
 
 struct _GdkQnxScreenDevice
 {
-    GdkDevice parent_instance;
-    screen_window_t window_handle;
-    GdkSurface* surface;
-    int root_pos[2];
-    int window_pos[2];
-    int buttons;
+  GdkDevice parent_instance;
+  screen_window_t window_handle;
+  GdkSurface *surface;
+  int root_pos[2];
+  int window_pos[2];
+  int buttons;
 };
 
 struct _GdkQnxScreenDeviceClass
 {
-    GdkDeviceClass parent_class;
+  GdkDeviceClass parent_class;
 };
 
-#endif 
+#endif

@@ -25,11 +25,11 @@
 
 typedef struct _GdkQnxScreenEventSource
 {
-    GSource source;
-    GdkDisplay* display;
+  GSource source;
+  GdkDisplay *display;
 } GdkQnxScreenEventSource;
 
-int gdk_qnxscreen_event_loop_init(GdkDisplay* display, screen_context_t context);
-void gdk_qnxscreen_event_deliver_event(GdkDisplay* display, GdkEvent* event);
+int gdk_qnxscreen_event_loop_init (GdkDisplay *display, screen_context_t context);
+void gdk_qnxscreen_event_deliver_event (GdkDisplay *display, GdkEvent *event);
 
 #endif

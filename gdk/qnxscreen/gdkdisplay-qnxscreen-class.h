@@ -24,15 +24,15 @@
 typedef struct _GdkQnxScreenDisplay GdkQnxScreenDisplay;
 typedef struct _GdkQnxScreenDisplayClass GdkQnxScreenDisplayClass;
 
-#define GDK_TYPE_QNXSCREEN_DISPLAY              (gdk_qnxscreen_display_get_type())
-#define GDK_QNXSCREEN_DISPLAY(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_QNXSCREEN_DISPLAY, GdkQnxScreenDisplay))
-#define GDK_QNXSCREEN_DISPLAY_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_QNXSCREEN_DISPLAY, GdkQnxScreenDisplayClass))
-#define GDK_IS_QNXSCREEN_DISPLAY(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_QNXSCREEN_DISPLAY))
-#define GDK_IS_QNXSCREEN_DISPLAY_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_QNXSCREEN_DISPLAY))
-#define GDK_QNXSCREEN_DISPLAY_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_QNXSCREEN_DISPLAY, GdkQnxScreenDisplayClass))
+#define GDK_TYPE_QNXSCREEN_DISPLAY (gdk_qnxscreen_display_get_type ())
+#define GDK_QNXSCREEN_DISPLAY(object) (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_QNXSCREEN_DISPLAY, GdkQnxScreenDisplay))
+#define GDK_QNXSCREEN_DISPLAY_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_QNXSCREEN_DISPLAY, GdkQnxScreenDisplayClass))
+#define GDK_IS_QNXSCREEN_DISPLAY(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_QNXSCREEN_DISPLAY))
+#define GDK_IS_QNXSCREEN_DISPLAY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_QNXSCREEN_DISPLAY))
+#define GDK_QNXSCREEN_DISPLAY_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_QNXSCREEN_DISPLAY, GdkQnxScreenDisplayClass))
 
-GType gdk_qnxscreen_display_get_type(void);
-void gdk_qnxscreen_display_management_event(GdkDisplay* display);
-void gdk_qnxscreen_display_surface_destroyed(GdkDisplay* display, GdkSurface* surface);
+GType gdk_qnxscreen_display_get_type (void);
+void gdk_qnxscreen_display_management_event (GdkDisplay *display);
+void gdk_qnxscreen_display_surface_destroyed (GdkDisplay *display, GdkSurface *surface);
 
 #endif
