@@ -8,7 +8,7 @@ Note that building is only tested on a Ubuntu host.
 Building
 ---
 
-1. Install host dependencies: `libsass1` (for `sassc`), `libglib2.0-bin` (for `glib-compile-schemas`) and `pkg-config`
+1. Install host dependencies: `sassc`, `libglib2.0-bin` (for `glib-compile-schemas`) and `pkg-config`
 2. Make sure submodules are updated using `git submodule update --init`
 3. Source QNX SDP environment
 4. Create a staging area for the GTK4 build, for example, `/tmp/staging`
