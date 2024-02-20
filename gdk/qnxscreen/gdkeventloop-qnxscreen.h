@@ -22,6 +22,7 @@
 #include "gdk/gdk.h"
 #include "gdk/gdkdisplayprivate.h"
 #include "gdk/gdkeventsprivate.h"
+#include <screen/screen.h>
 
 typedef struct _GdkQnxScreenEventSource
 {

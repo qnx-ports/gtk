@@ -26,7 +26,6 @@
 #include "glib.h"
 #include <errno.h>
 #include <pthread.h>
-#include <screen/screen.h>
 #include <sys/iomsg.h>
 #include <sys/neutrino.h>
 #include <unistd.h>

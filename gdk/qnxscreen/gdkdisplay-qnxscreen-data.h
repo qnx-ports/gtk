@@ -19,6 +19,7 @@
 #ifndef __GDK_QNXSCREEN_DISPLAY_DATA_H__
 #define __GDK_QNXSCREEN_DISPLAY_DATA_H__
 
+#include "gdk/gdk.h"
 #include "gdk/gdkdebugprivate.h"
 #include "gdk/gdkdisplayprivate.h"
 #include "gdk/gdkkeysprivate.h"
