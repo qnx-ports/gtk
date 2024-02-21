@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 BlackBerry Limited.
+ * Copyright (C) 2024 BlackBerry Limited.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
