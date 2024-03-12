@@ -23,6 +23,7 @@
 #include "gdkdevice-qnxscreen-class.h"
 #include "gdkdisplay-qnxscreen-data.h"
 #include "gdkeventloop-qnxscreen.h"
+#include "gdkglcontext-qnxscreen.h"
 #include "gdkkeys-qnxscreen.h"
 #include "gdkmonitor-qnxscreen-class.h"
 #include "gdkprivate-qnxscreen.h"
@@ -166,6 +167,10 @@ gdk_qnxscreen_display_class_init (GdkQnxScreenDisplayClass *class)
   display_class->cairo_context_type = GDK_TYPE_QNXSCREEN_CAIRO_CONTEXT;
   display_class->toplevel_type = GDK_TYPE_QNXSCREEN_TOPLEVEL;
   display_class->popup_type = GDK_TYPE_QNXSCREEN_POPUP;
+
+#if __QNX__ >= 800
+  display_class->init_gl = gdk_qnxscreen_display_init_gl;
+#endif
 }
 
 GdkDisplay *

@@ -5,6 +5,7 @@ qnxscreen_sources = files(
     'gdkcairocontext-qnxscreen.c',
     'gdkdevice-qnxscreen.c',
     'gdkeventloop-qnxscreen.c',
+    'gdkglcontext-qnxscreen.c',
     'gdkkeys-qnxscreen.c',
 )
 

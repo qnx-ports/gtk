@@ -3,6 +3,7 @@ directory = libepoxy
 url = https://github.com/anholt/libepoxy.git
 revision = 2df68f811fc1a5f0a6d372ecdb887333ad3f540f
 depth = 1
+diff_files = qnx/libepoxy/0001-Add-GLES-support-on-QNX-7.1-and-8.0.patch
 
 [provide]
 dependency_names = epoxy

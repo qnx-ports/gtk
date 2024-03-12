@@ -1,0 +1,76 @@
+From 8b58facd16a43488fa893d9bda022135e6b422ae Mon Sep 17 00:00:00 2001
+From: Peter Cai <xicai@blackberry.com>
+Date: Tue, 12 Mar 2024 14:31:19 -0400
+Subject: [PATCH] Add GLES support on QNX 7.1 and 8.0
+
+---
+ src/dispatch_common.c | 15 +++++++++++++++
+ src/dispatch_common.h |  4 ++++
+ 2 files changed, 19 insertions(+)
+
+diff --git a/src/dispatch_common.c b/src/dispatch_common.c
+index 153eb7c..3fb4698 100644
+--- a/src/dispatch_common.c
++++ b/src/dispatch_common.c
+@@ -188,6 +188,10 @@
+ #define GLES1_LIB "libGLES_CM.dll"
+ #define GLES2_LIB "libGLESv2.dll"
+ #define OPENGL_LIB "OPENGL32"
++#elif defined(__QNX__)
++#define EGL_LIB "libEGL.so.1"
++#define GLES1_LIB "libGLESv1_CM.so.1"
++#define GLES2_LIB "libGLESv2.so.1"
+ #else
+ #define GLVND_GLX_LIB "libGLX.so.1"
+ #define GLX_LIB "libGL.so.1"
+@@ -305,7 +309,12 @@ get_dlopen_handle(void **handle, const char *lib_name, bool exit_on_fail, bool l
+ #else
+     pthread_mutex_lock(&api.mutex);
+     if (!*handle) {
++#ifdef __QNX__
++        // On QNX, graphics libraries depend on each other without declaration in ELF
++        int flags = RTLD_LAZY | RTLD_GLOBAL;
++#else
+         int flags = RTLD_LAZY | RTLD_LOCAL;
++#endif
+         if (!load)
+             flags |= RTLD_NOLOAD;
+ 
+@@ -666,6 +675,11 @@ epoxy_load_gl(void)
+     if (api.gl_handle)
+ 	return;
+ 
++#if !defined(OPENGL_LIB) && !defined(GLX_LIB)
++    fprintf(stderr, "Current platform does not support OpenGL\n");
++    abort();
++#else
++
+ #if defined(_WIN32) || defined(__APPLE__)
+     get_dlopen_handle(&api.gl_handle, OPENGL_LIB, true, true);
+ #else
+@@ -691,6 +705,7 @@ epoxy_load_gl(void)
+         abort();
+     }
+ 
++#endif
+ #endif
+ }
+ 
+diff --git a/src/dispatch_common.h b/src/dispatch_common.h
+index a136943..965153e 100644
+--- a/src/dispatch_common.h
++++ b/src/dispatch_common.h
+@@ -35,6 +35,10 @@
+ #define PLATFORM_HAS_EGL ENABLE_EGL
+ #define PLATFORM_HAS_GLX 0
+ #define PLATFORM_HAS_WGL 0
++#elif defined(__QNX__)
++#define PLATFORM_HAS_EGL ENABLE_EGL
++#define PLATFORM_HAS_GLX 0
++#define PLATFORM_HAS_WGL 0
+ #else
+ #define PLATFORM_HAS_EGL ENABLE_EGL
+ #define PLATFORM_HAS_GLX ENABLE_GLX
+-- 
+2.34.1
+

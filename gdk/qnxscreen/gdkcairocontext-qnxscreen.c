@@ -33,11 +33,13 @@ gdk_qnxscreen_cairo_context_dispose (GObject *object)
 static void
 gdk_qnxscreen_cairo_context_begin_frame (GdkDrawContext *draw_context, GdkMemoryDepth depth, cairo_region_t *region)
 {
+  GDK_DEBUG (MISC, "%s begin_frame GdkQnxScreenCairoContext", QNX_SCREEN);
 }
 
 static void
 gdk_qnxscreen_cairo_context_end_frame (GdkDrawContext *draw_context, cairo_region_t *painted)
 {
+  GDK_DEBUG (MISC, "%s end_frame GdkQnxScreenCairoContext", QNX_SCREEN);
   int num_rects = 0;
   cairo_rectangle_int_t *damage_rects = NULL;
   GdkQnxScreenCairoContext *qnx_screen_cairo_context = GDK_QNXSCREEN_CAIRO_CONTEXT (draw_context);
