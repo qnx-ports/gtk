@@ -30,9 +30,9 @@
 G_DEFINE_TYPE (GdkQnxScreenGLContext, gdk_qnxscreen_gl_context, GDK_TYPE_GL_CONTEXT)
 
 static void
-gdk_qnxscreen_gl_context_begin_frame (GdkDrawContext *draw_context, gboolean prefers_high_depth, cairo_region_t *region)
+gdk_qnxscreen_gl_context_begin_frame (GdkDrawContext *draw_context, GdkMemoryDepth depth, cairo_region_t *region)
 {
-  GDK_DRAW_CONTEXT_CLASS (gdk_qnxscreen_gl_context_parent_class)->begin_frame (draw_context, prefers_high_depth, region);
+  GDK_DRAW_CONTEXT_CLASS (gdk_qnxscreen_gl_context_parent_class)->begin_frame (draw_context, depth, region);
 }
 
 static void
