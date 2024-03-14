@@ -1115,6 +1115,7 @@ gdk_surface_set_egl_native_window (GdkSurface *self,
 {
 #ifdef HAVE_EGL
   GdkSurfacePrivate *priv = gdk_surface_get_instance_private (self);
+  GdkDisplay *display = gdk_surface_get_display (self);
 
   /* This checks that all EGL platforms we support conform to the same struct sizes.
    * When this ever fails, there will be some fun times happening for whoever tries
@@ -1124,7 +1125,7 @@ gdk_surface_set_egl_native_window (GdkSurface *self,
   if (priv->egl_surface != NULL)
     {
       gdk_gl_context_clear_current_if_surface (self);
-      eglDestroySurface (gdk_surface_get_display (self), priv->egl_surface);
+      eglDestroySurface (gdk_display_get_egl_display (display), priv->egl_surface);
       priv->egl_surface = NULL;
     }
 
