@@ -79,7 +79,7 @@ gdk_qnxscreen_surface_get_root_coords (GdkSurface *surface, gint x, gint y, gint
 }
 
 static int
-gdk_qnxscreen_create_buffers (GdkQnxScreenSurface *qnx_screen_surface, int *buf_size)
+gdk_qnxscreen_surface_create_buffers (GdkQnxScreenSurface *qnx_screen_surface, int *buf_size)
 {
   GdkSurface *surface = GDK_SURFACE (qnx_screen_surface);
   int ret = 0;
@@ -165,7 +165,7 @@ gdk_qnxscreen_create_buffers (GdkQnxScreenSurface *qnx_screen_surface, int *buf_
 }
 
 static void
-gdk_qnxscreen_destroy_buffers (GdkQnxScreenSurface *impl)
+gdk_qnxscreen_surface_destroy_buffers (GdkQnxScreenSurface *impl)
 {
   for (int i = 0; i < QNXSCREEN_NUM_BUFFERS; i++)
     {
@@ -188,10 +188,10 @@ gdk_qnxscreen_destroy_buffers (GdkQnxScreenSurface *impl)
 }
 
 static int
-gdk_qnxscreen_recreate_buffers (GdkQnxScreenSurface *impl, int *buf_size)
+gdk_qnxscreen_surface_recreate_buffers (GdkQnxScreenSurface *impl, int *buf_size)
 {
-  gdk_qnxscreen_destroy_buffers (impl);
-  return gdk_qnxscreen_create_buffers (impl, buf_size);
+  gdk_qnxscreen_surface_destroy_buffers (impl);
+  return gdk_qnxscreen_surface_create_buffers (impl, buf_size);
 }
 
 static void
@@ -213,7 +213,7 @@ gdk_qnxscreen_surface_finalize (GObject *object)
       impl->session_handle = NULL;
     }
 
-  gdk_qnxscreen_destroy_buffers (impl);
+  gdk_qnxscreen_surface_destroy_buffers (impl);
 
   if (impl->window_handle != NULL)
     {
@@ -425,7 +425,7 @@ gdk_qnxscreen_surface_move_resize (GdkSurface *surface,
       if (width > impl->buf_width || height > impl->buf_height)
         {
           /* The window has been resized larger than the buffers; we must recreate the buffers entirely */
-          ret = gdk_qnxscreen_recreate_buffers (impl, new_size);
+          ret = gdk_qnxscreen_surface_recreate_buffers (impl, new_size);
           if (ret < 0)
             {
               g_critical (G_STRLOC ": cannot recreate QNX Screen buffers");
@@ -745,7 +745,7 @@ gdk_qnxscreen_create_window (GdkQnxScreenSurface *qnx_screen_surface, int qnxscr
   GDK_DEBUG (MISC, "%s successfully set screen swap interval to 0x%04X", QNX_SCREEN, SCREEN_PROPERTY_SWAP_INTERVAL);
 
   /* create initial window buffers */
-  ret = gdk_qnxscreen_create_buffers (qnx_screen_surface, win_size);
+  ret = gdk_qnxscreen_surface_create_buffers (qnx_screen_surface, win_size);
   if (ret < 0)
     {
       g_critical (G_STRLOC ": failed to create window buffers");
