@@ -588,6 +588,18 @@ gdk_qnxscreen_surface_destroy (GdkSurface *surface, gboolean foreign_destroy)
   g_hash_table_remove (qnx_screen_display->surface_window_table, GINT_TO_POINTER (qnx_screen_surface->window_handle));
 }
 
+static GdkDrag *
+gdk_qnxscreen_surface_drag_begin (GdkSurface *surface,
+                                  GdkDevice *device,
+                                  GdkContentProvider *content,
+                                  GdkDragAction actions,
+                                  double dx,
+                                  double dy)
+{
+  // TODO: Implement this
+  return NULL;
+}
+
 static void
 gdk_qnxscreen_surface_init (GdkQnxScreenSurface *surface)
 {
@@ -627,6 +639,7 @@ gdk_qnxscreen_surface_class_init (GdkQnxScreenSurfaceClass *class)
   surface_class->set_input_region = gdk_qnxscreen_surface_set_input_region;
   surface_class->hide = gdk_qnxscreen_surface_hide;
   surface_class->destroy = gdk_qnxscreen_surface_destroy;
+  surface_class->drag_begin = gdk_qnxscreen_surface_drag_begin;
 }
 
 static void
@@ -990,6 +1003,30 @@ gdk_qnxscreen_toplevel_present (GdkToplevel *toplevel, GdkToplevelLayout *layout
 }
 
 static void
+gdk_qnxscreen_toplevel_begin_move (GdkToplevel *toplevel,
+                                   GdkDevice *device,
+                                   int button,
+                                   double x,
+                                   double y,
+                                   guint32 timestamp)
+{
+  // TODO: actually implement this
+  //       QNX Screen has no native drag implementation -- need to emulate
+}
+
+static void
+gdk_qnxscreen_toplevel_begin_resize (GdkToplevel *toplevel,
+                                     GdkSurfaceEdge edge,
+                                     GdkDevice *device,
+                                     int button,
+                                     double x,
+                                     double y,
+                                     guint32 timestamp)
+{
+  // TODO: Actually implement this
+}
+
+static void
 gdk_qnxscreen_toplevel_init (GdkQnxScreenToplevel *toplevel)
 {
   GDK_DEBUG (MISC, "%s initializing GdkQnxScreenToplevel: %p", QNX_SCREEN, toplevel);
@@ -1031,6 +1068,8 @@ gdk_qnxscreen_toplevel_iface_init (GdkToplevelInterface *iface)
 
   iface->present = gdk_qnxscreen_toplevel_present;
   iface->lower = gdk_qnxscreen_toplevel_lower;
+  iface->begin_move = gdk_qnxscreen_toplevel_begin_move;
+  iface->begin_resize = gdk_qnxscreen_toplevel_begin_resize;
 }
 
 G_DEFINE_TYPE_WITH_CODE (GdkQnxScreenPopup, gdk_qnxscreen_popup, GDK_TYPE_QNXSCREEN_SURFACE, G_IMPLEMENT_INTERFACE (GDK_TYPE_POPUP, gdk_qnxscreen_popup_iface_init))
