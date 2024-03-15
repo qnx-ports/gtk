@@ -25,6 +25,7 @@ Running the GTK4 Demo
 3. Set the following env variables (`<prefix>` is the directory on target where all the subdirectories emitted by GTK such as `bin`, `lib` is located):
    - `XDG_DATA_DIRS=<prefix>/share`
    - `LD_LIBRARY_PATH=<prefix>/lib`
+   - `GSK_RENDERER=gl` on Raspberry Pi 4 (see below for explanation)
 4. Run `gtk4-demo` in the bin directory.
 
 Caveats
@@ -33,5 +34,5 @@ Caveats
 - This is only an **experimental port of GTK4** itself. Dependency libraries, such as `glib`, are not fully ported and are not guaranteed to be fully functional outside of those functionalities used by GTK4.
   - As a result, the test suite of GTK4 is also not expected to work correctly.
   - Do not depend on functionalities exposed directly via dependencies such as `glib`.
-- Currently, only the Cairo rendering backend is supported. Hardware accelerated rendering through OpenGL or Vulkan is not implemented.
+- Hardware accelerated rendering is supported with OpenGL ES 2/3 on QNX 8. However, on the Raspberry Pi 4 target, the latest `ngl` renderer is known to be broken due to an upstream bug #6498. Set `GSK_RENDERER=gl` to use the legacy renderer in this case.
 - All functionalities that rely on `dbus` will not work on QNX.
