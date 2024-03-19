@@ -157,6 +157,7 @@ gtk4_all: build/build.ninja
 
 install check: gtk4_all
 	cd build && $(NINJA) install
+	glib-compile-schemas $(INSTALL_ROOT_WITH_PREFIX)/share/glib-2.0/schemas
 
 clean:
 	rm -rf qnx_cross.cfg

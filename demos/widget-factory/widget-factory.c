@@ -2230,6 +2230,7 @@ activate (GApplication *app)
     }
 
   window = (GtkWindow *)gtk_builder_get_object (builder, "window");
+  gtk_window_fullscreen (window);
 
   load_texture_in_thread ((GtkWidget *)gtk_builder_get_object (builder, "notebook_sunset"),
                           "/org/gtk/WidgetFactory4/sunset.jpg");

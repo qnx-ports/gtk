@@ -919,6 +919,13 @@ activate (GApplication *app)
   window = (GtkWidget *)gtk_builder_get_object (builder, "window");
   gtk_application_add_window (GTK_APPLICATION (app), GTK_WINDOW (window));
 
+  GdkRectangle workarea = {0};
+  gdk_monitor_get_geometry (
+      GDK_MONITOR (g_list_model_get_item (gdk_display_get_monitors (gdk_display_get_default ()), 0)),
+      &workarea);
+  gtk_window_set_default_size (GTK_WINDOW (window), workarea.width, workarea.height);
+
+
   if (g_strcmp0 (PROFILE, "devel") == 0)
     gtk_widget_add_css_class (window, "devel");
 
