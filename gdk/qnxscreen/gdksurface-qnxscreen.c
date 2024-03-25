@@ -178,6 +178,10 @@ gdk_qnxscreen_surface_destroy_buffers (GdkQnxScreenSurface *impl)
 
   if (impl->window_handle != NULL)
     {
+      // Ask GDK to destroy any EGL surface we have created
+      // Otherwise we have a dangling pointer to an invalid EGL surface
+      gdk_surface_set_egl_native_window (GDK_SURFACE (impl), NULL);
+
       screen_destroy_window_buffers (impl->window_handle);
 
       for (int i = 0; i < QNXSCREEN_NUM_BUFFERS; i++)
@@ -192,67 +196,6 @@ gdk_qnxscreen_surface_recreate_buffers (GdkQnxScreenSurface *impl, int *buf_size
 {
   gdk_qnxscreen_surface_destroy_buffers (impl);
   return gdk_qnxscreen_surface_create_buffers (impl, buf_size);
-}
-
-static void
-gdk_qnxscreen_surface_finalize (GObject *object)
-{
-  GDK_DEBUG (MISC, "%s finalize GdkQnxScreenSurface: %p", QNX_SCREEN, object);
-
-  GdkSurface *surface = GDK_SURFACE (object);
-  GdkQnxScreenSurface *impl = GDK_QNXSCREEN_SURFACE (surface);
-  GdkDisplay *display = gdk_surface_get_display (surface);
-  GdkQnxScreenDisplay *display_impl = GDK_QNXSCREEN_DISPLAY (display);
-
-  // Notify the display that this surface is about to be destroyed
-  gdk_qnxscreen_display_surface_destroyed (display, surface);
-
-  if (impl->session_handle != NULL)
-    {
-      screen_destroy_session (impl->session_handle);
-      impl->session_handle = NULL;
-    }
-
-  gdk_qnxscreen_surface_destroy_buffers (impl);
-
-  if (impl->window_handle != NULL)
-    {
-      screen_destroy_window (impl->window_handle);
-      impl->window_handle = NULL;
-    }
-
-  unsigned long long qval = impl->zorder;
-  if (qval != 0)
-    { // TODO: This is INCORRECT because 0 can be a valid, non-default z-order. We should NOT track z-orders using a queue.
-      if (GDK_IS_TOPLEVEL (surface))
-        {
-          /* GdkDisplay zorder queue should have 1:1 z-order allocation for all windows */
-          g_warn_if_fail (g_queue_remove (display_impl->zorders, (void *) qval));
-        }
-      else if (surface->parent)
-        {
-          GdkQnxScreenSurface *parent = GDK_QNXSCREEN_SURFACE (surface->parent);
-          /* parent's GdkSurface zorder queue should have 1:1 z-order allocation for all windows */
-          g_warn_if_fail (g_queue_remove (parent->zorders, (void *) qval));
-        }
-    }
-
-  impl->zorder = 0;
-
-  if (impl->zorders)
-    {
-      g_queue_free (impl->zorders);
-      impl->zorders = NULL;
-    }
-  if (impl->active_touch_table)
-    {
-      g_hash_table_destroy (impl->active_touch_table);
-    }
-  if (impl->refocussed_touch_table)
-    {
-      g_hash_table_destroy (impl->refocussed_touch_table);
-    }
-  G_OBJECT_CLASS (gdk_qnxscreen_surface_parent_class)->dispose (object);
 }
 
 static void
@@ -582,10 +525,60 @@ gdk_qnxscreen_surface_destroy (GdkSurface *surface, gboolean foreign_destroy)
   g_return_if_fail (GDK_IS_SURFACE (surface));
 
   GdkDisplay *display = gdk_surface_get_display (surface);
-  GdkQnxScreenDisplay *qnx_screen_display = GDK_QNXSCREEN_DISPLAY (display);
-  GdkQnxScreenSurface *qnx_screen_surface = GDK_QNXSCREEN_SURFACE (surface);
+  GdkQnxScreenDisplay *display_impl = GDK_QNXSCREEN_DISPLAY (display);
+  GdkQnxScreenSurface *impl = GDK_QNXSCREEN_SURFACE (surface);
 
-  g_hash_table_remove (qnx_screen_display->surface_window_table, GINT_TO_POINTER (qnx_screen_surface->window_handle));
+  // Buffers need to be destroyed first -- this will also destroy the EGL surface
+  gdk_qnxscreen_surface_destroy_buffers (impl);
+
+  // Notify the display that this surface is about to be destroyed
+  gdk_qnxscreen_display_surface_destroyed (display, surface);
+
+  g_hash_table_remove (display_impl->surface_window_table, GINT_TO_POINTER (impl->window_handle));
+
+  if (impl->session_handle != NULL)
+    {
+      screen_destroy_session (impl->session_handle);
+      impl->session_handle = NULL;
+    }
+
+  if (impl->window_handle != NULL)
+    {
+      screen_destroy_window (impl->window_handle);
+      impl->window_handle = NULL;
+    }
+
+  unsigned long long qval = impl->zorder;
+  if (qval != 0)
+    { // TODO: This is INCORRECT because 0 can be a valid, non-default z-order. We should NOT track z-orders using a queue.
+      if (GDK_IS_TOPLEVEL (surface))
+        {
+          /* GdkDisplay zorder queue should have 1:1 z-order allocation for all windows */
+          g_warn_if_fail (g_queue_remove (display_impl->zorders, (void *) qval));
+        }
+      else if (surface->parent)
+        {
+          GdkQnxScreenSurface *parent = GDK_QNXSCREEN_SURFACE (surface->parent);
+          /* parent's GdkSurface zorder queue should have 1:1 z-order allocation for all windows */
+          g_warn_if_fail (g_queue_remove (parent->zorders, (void *) qval));
+        }
+    }
+
+  impl->zorder = 0;
+
+  if (impl->zorders)
+    {
+      g_queue_free (impl->zorders);
+      impl->zorders = NULL;
+    }
+  if (impl->active_touch_table)
+    {
+      g_hash_table_destroy (impl->active_touch_table);
+    }
+  if (impl->refocussed_touch_table)
+    {
+      g_hash_table_destroy (impl->refocussed_touch_table);
+    }
 }
 
 static GdkDrag *
@@ -631,8 +624,6 @@ gdk_qnxscreen_surface_class_init (GdkQnxScreenSurfaceClass *class)
 
   GObjectClass *object_class = G_OBJECT_CLASS (class);
   GdkSurfaceClass *surface_class = GDK_SURFACE_CLASS (class);
-
-  object_class->finalize = gdk_qnxscreen_surface_finalize;
 
   surface_class->get_device_state = gdk_qnxscreen_surface_get_device_state;
   surface_class->get_root_coords = gdk_qnxscreen_surface_get_root_coords;
