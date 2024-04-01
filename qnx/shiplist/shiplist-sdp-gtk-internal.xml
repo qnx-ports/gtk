@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shiplist>
-	<id>com.qnx.${baselineId}.osr.tinyxml2.internal</id>
+	<id>com.qnx.${baselineId}.osr.gtk.internal</id>
 	<name>GTK</name>
 	<description>GTK - The GTK toolkit</description>
 	<property key="f.support" value="Custom"/>
