@@ -121,6 +121,8 @@ gdk_qnxscreen_surface_create_buffers (GdkQnxScreenSurface *qnx_screen_surface, i
    */
   qnx_screen_surface->buf_width = buf_size[0];
   qnx_screen_surface->buf_height = buf_size[1];
+  surface->width = buf_size[0];
+  surface->height = buf_size[1];
   GDK_DEBUG (MISC, "%s successfully created window buffers, size: %dx%d (default)",
              QNX_SCREEN, qnx_screen_surface->buf_width, qnx_screen_surface->buf_height);
 
