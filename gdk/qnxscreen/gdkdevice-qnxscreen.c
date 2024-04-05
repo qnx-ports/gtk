@@ -316,7 +316,25 @@ emit_button_events (GdkDisplay *display, GdkDevice *device, GdkQnxScreenDevice *
   GdkQnxScreenDevice *pointer = GDK_QNXSCREEN_DEVICE (device);
   GdkEvent *event = NULL;
   int event_type = 0;
-  GdkModifierType button_mask = gdk_qnxscreen_buttons_to_mask (pointer->buttons);
+  /* The button_mask emitted in this function has to be the *old* value
+   * before the current event happened.
+   * We will synchronize the masks one button at a time as we emit events. */
+  GdkModifierType button_mask = gdk_qnxscreen_buttons_to_mask (prev_pointer->buttons);
+
+  /* Right before the new button events, ensure we also send a motion event
+   * with the current button_masks value. This is required for the button
+   * event to be processed. */
+  event = gdk_motion_event_new (
+      pointer->surface,
+      device,
+      NULL,
+      GDK_QNXSCREEN_TIME (),
+      button_mask,
+      pointer->window_pos[0],
+      pointer->window_pos[1],
+      NULL);
+
+  gdk_qnxscreen_event_deliver_event (display, event);
 
   for (int i = 0; i < 3; i++)
     {
@@ -335,8 +353,7 @@ emit_button_events (GdkDisplay *display, GdkDevice *device, GdkQnxScreenDevice *
           device,
           NULL,
           GDK_QNXSCREEN_TIME (),
-          /* Just before a button is released, its mask shall still be set */
-          button_mask | ((event_type == GDK_BUTTON_RELEASE) ? gdk_button_masks[i] : 0),
+          button_mask,
           gdk_buttons[i],
           pointer->window_pos[0],
           pointer->window_pos[1],
@@ -354,6 +371,16 @@ emit_button_events (GdkDisplay *display, GdkDevice *device, GdkQnxScreenDevice *
           pointer->surface);
 
       gdk_qnxscreen_event_deliver_event (display, event);
+
+      /* Now that we have delivered the event, we can synchronize button_mask for this button */
+      if (event_type == GDK_BUTTON_PRESS)
+        {
+          button_mask |= gdk_button_masks[i];
+        }
+      else
+        {
+          button_mask &= ~gdk_button_masks[i];
+        }
     }
 }
 
