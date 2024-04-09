@@ -606,7 +606,7 @@ emit_touch_event (GdkDisplay *display, GdkQnxScreenDevice *touch_state, int touc
     case GDK_TOUCH_END:
     case GDK_TOUCH_CANCEL:
       /* zero button_mask for cancel/end */
-      buttons = 0;
+      // buttons = 0;
       /* If there's no active touch sequence for this touch_id */
       if (!touch_sequence)
         {
@@ -639,6 +639,29 @@ emit_touch_event (GdkDisplay *display, GdkQnxScreenDevice *touch_state, int touc
     {
       /* Set the button mask, based on the event type */
       touch_state->buttons = buttons;
+      /* 
+      TODO: Although this somehow works, but this shouldn't be a fix
+      Without this motion event, the real issue is, sometimes when we use touch screen
+      There is no real reasponse to the buttons/dropdown menus. It can be focused, 
+      but never selected. After some debug, we found that when the issue happens, 
+      there are always some ghost motion event coming out from nowhere (not qnx).
+      And for the few times that touch input works fine, there is no such motion
+      notify event. (Don't use GDK_DEBUG=events cuz that will not result in the error. 
+      Instead, uncomment the lines in gdkevents.c gdk_event_alloc)
+      We don't know why adding this motion event works. But it seemslying 
+      solves the issue.
+      */
+      GdkEvent *motion_event = gdk_motion_event_new (
+      touch_state->surface,
+      display_impl->core_pointer,
+      NULL,
+      GDK_QNXSCREEN_TIME (),
+      touch_state->buttons,
+      touch_state->window_pos[0],
+      touch_state->window_pos[1],
+      NULL);
+
+      gdk_qnxscreen_event_deliver_event (display, motion_event);
 
       GdkEvent *event = gdk_touch_event_new (
           touch_type,
