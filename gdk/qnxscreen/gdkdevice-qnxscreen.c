@@ -438,18 +438,21 @@ emit_surface_crossing_event (GdkDisplay *display, GdkQnxScreenDevice *pointer, G
     }
 
   /* second send a entry notify event for the new surface */
-  event = gdk_crossing_event_new (
-      GDK_ENTER_NOTIFY,
-      pointer->surface,
-      qnx_screen_display->core_pointer,
-      GDK_QNXSCREEN_TIME (),
-      gdk_qnxscreen_buttons_to_mask (pointer->buttons),
-      pointer->window_pos[0],
-      pointer->window_pos[1],
-      GDK_CROSSING_NORMAL,
-      GDK_NOTIFY_ANCESTOR);
-  gdk_qnxscreen_event_deliver_event (display, event);
-  GDK_DEBUG (EVENTS, "%s ENTER_NOTIFY surface %p", QNX_SCREEN, pointer->surface);
+  if (pointer != NULL && NULL != pointer->surface)
+   {
+    event = gdk_crossing_event_new (
+        GDK_ENTER_NOTIFY,
+        pointer->surface,
+        qnx_screen_display->core_pointer,
+        GDK_QNXSCREEN_TIME (),
+        gdk_qnxscreen_buttons_to_mask (pointer->buttons),
+        pointer->window_pos[0],
+        pointer->window_pos[1],
+        GDK_CROSSING_NORMAL,
+        GDK_NOTIFY_ANCESTOR);
+    gdk_qnxscreen_event_deliver_event (display, event);
+    GDK_DEBUG (EVENTS, "%s ENTER_NOTIFY surface %p", QNX_SCREEN, pointer->surface);
+    }
 
   /* third send a lost focus event for the old surface */
   if (prev_pointer != NULL && NULL != prev_pointer->surface)
@@ -460,9 +463,12 @@ emit_surface_crossing_event (GdkDisplay *display, GdkQnxScreenDevice *pointer, G
     }
 
   /* finally send a focus event for the new surface */
-  event = gdk_focus_event_new (pointer->surface, qnx_screen_display->core_keyboard, TRUE);
-  gdk_qnxscreen_event_deliver_event (display, event);
-  GDK_DEBUG (EVENTS, "%s GAINED focus %p", QNX_SCREEN, pointer->surface);
+  if (pointer != NULL && NULL != pointer->surface)
+    {
+      event = gdk_focus_event_new (pointer->surface, qnx_screen_display->core_keyboard, TRUE);
+      gdk_qnxscreen_event_deliver_event (display, event);
+      GDK_DEBUG (EVENTS, "%s GAINED focus %p", QNX_SCREEN, pointer->surface);
+    }
 }
 
 void
@@ -886,6 +892,8 @@ gdk_qnxscreen_device_keyboard_event (GdkDisplay *display)
   int scan = 0;
   int flags = 0;
   int modifiers = 0;
+  int gdk_sym = 0;
+  GdkModifierType gdk_modifiers = GDK_NO_MODIFIER_MASK;
 
   /* get the QNX window where the keyboard event occurred */
   if (ret == 0)
@@ -953,6 +961,28 @@ gdk_qnxscreen_device_keyboard_event (GdkDisplay *display)
       surface = g_hash_table_lookup (qnx_screen_display->surface_window_table, window_handle);
     }
 
+  /*
+    If sym is not available, check cap values
+    This usually happens when modifier is on
+   */
+  gdk_sym = sym;
+  if (!(flags & KEY_SYM_VALID)) {
+    if (flags & KEY_CAP_VALID) {
+      gdk_sym = cap;
+      if (gdk_sym == KEYCODE_SLASH) {
+        gdk_sym = KEYCODE_QUESTION;
+      }
+    } else {
+      g_warning (G_STRLOC "key event received but no a valid key value!");
+    }
+  }
+
+  /* Convert QNX modifier to GDK modifier*/
+  if ( modifiers & KEYMOD_SHIFT ) {  gdk_modifiers |= GDK_SHIFT_MASK; }
+  if ( modifiers & KEYMOD_CTRL ) {  gdk_modifiers |= GDK_CONTROL_MASK; }
+  if ( modifiers & KEYMOD_ALT ) {  gdk_modifiers |= GDK_ALT_MASK; }
+  if ( modifiers & KEYMOD_CAPS_LOCK ) {  gdk_modifiers |= GDK_LOCK_MASK; } // Assumed Lock is Capslock
+
   /* create event and deliver */
   GdkTranslatedKey translated;
   translated.keyval = sym;
@@ -964,8 +994,8 @@ gdk_qnxscreen_device_keyboard_event (GdkDisplay *display)
       surface,
       qnx_screen_display->core_keyboard,
       GDK_QNXSCREEN_TIME (),
-      sym,
-      0, // todo need to convert modifiers to GdkModifierType type
+      gdk_sym,
+      gdk_modifiers,
       FALSE,
       &translated,
       &translated,
@@ -976,7 +1006,7 @@ gdk_qnxscreen_device_keyboard_event (GdkDisplay *display)
       "%s key %s sym %x cap %d scan %x flags %d mods %d",
       QNX_SCREEN,
       flags & KEY_DOWN ? "press" : "release",
-      sym, cap, scan, flags, modifiers);
+      gdk_sym, cap, scan, flags, gdk_modifiers);
 
   gdk_qnxscreen_event_deliver_event (display, event);
 }
