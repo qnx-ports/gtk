@@ -1884,6 +1884,8 @@ gdk_display_init_egl (GdkDisplay  *self,
     epoxy_has_egl_extension (priv->egl_display, "EGL_MESA_image_dma_buf_export");
   self->have_egl_gl_colorspace =
     epoxy_has_egl_extension (priv->egl_display, "EGL_KHR_gl_colorspace");
+  self->have_egl_nv_post_sub_buffer =
+    epoxy_has_egl_extension (priv->egl_display, "EGL_NV_post_sub_buffer");
 
   if (self->have_egl_no_config_context)
     priv->egl_config_high_depth = gdk_display_create_egl_config (self,

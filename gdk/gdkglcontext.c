@@ -129,6 +129,7 @@ struct _GdkGLContextPrivate
   guint debug_enabled : 1;
   guint forward_compatible : 1;
   guint is_legacy : 1;
+  guint has_surface_sub_post : 1;
 
   GdkGLAPI allowed_apis;
   GdkGLAPI api;
@@ -138,6 +139,7 @@ struct _GdkGLContextPrivate
 #ifdef HAVE_EGL
   EGLContext egl_context;
   EGLBoolean (*eglSwapBuffersWithDamage) (EGLDisplay, EGLSurface, const EGLint *, EGLint);
+  cairo_region_t *sub_post_buffer_region;
 #endif
 };
 
@@ -514,6 +516,42 @@ gdk_gl_context_real_get_damage (GdkGLContext *context)
           return damage;
         }
     }
+  else if (priv->egl_context && display->have_egl_nv_post_sub_buffer)
+    {
+      EGLSurface egl_surface = gdk_surface_get_egl_surface (surface);
+      EGLBoolean has_surface_sub_post = EGL_FALSE;
+
+      gdk_gl_context_make_current (context);
+      eglQuerySurface (gdk_display_get_egl_display (display), egl_surface,
+                       EGL_POST_SUB_BUFFER_SUPPORTED_NV, &has_surface_sub_post);
+
+      if (has_surface_sub_post)
+        {
+
+          if (priv->sub_post_buffer_region != NULL)
+            {
+              int num_rects, i;
+              double scale = gdk_surface_get_scale (surface);
+              cairo_region_t *damage = cairo_region_create ();
+
+              cairo_region_union (damage, priv->sub_post_buffer_region);
+
+              num_rects = cairo_region_num_rectangles (damage);
+              for (i = 0; i < num_rects; i ++)
+                {
+                  GdkRectangle rect;
+
+                  cairo_region_get_rectangle (damage, i, &rect);
+                  eglPostSubBufferNV (gdk_display_get_egl_display (gdk_surface_get_display (surface)),
+                                      gdk_surface_get_egl_surface (surface),
+                                      rect.x * scale, (rect.height - rect.y) * scale, rect.width * scale, rect.height * scale);
+				}
+              cairo_region_destroy (priv->sub_post_buffer_region);
+
+              return damage;
+            }
+         }
+    }
 #endif
 
   return cairo_region_create_rectangle (&(GdkRectangle) {
@@ -655,12 +693,31 @@ gdk_gl_context_real_begin_frame (GdkDrawContext  *draw_context,
       context->old_updated_area[i] = context->old_updated_area[i - 1];
     }
   context->old_updated_area[0] = cairo_region_copy (region);
+  priv->sub_post_buffer_region = cairo_region_copy (region);
 
   cairo_region_union (region, damage);
   cairo_region_destroy (damage);
 
   ww = (int) ceil (gdk_surface_get_width (surface) * scale);
   wh = (int) ceil (gdk_surface_get_height (surface) * scale);
+
+/* figure this out *//*
+#ifdef HAVE_EGL
+  if (gdk_gl_context_get_use_es (context) && priv->has_surface_sub_post)
+    {
+      int num_rects = cairo_region_num_rectangles (region);
+      GdkRectangle rect;
+
+      for (i = 0; i < num_rects; i ++)
+        {
+          cairo_region_get_rectangle (region, i, &rect);
+
+          eglPostSubBufferNV (gdk_display_get_egl_display (gdk_surface_get_display (surface)),
+                              gdk_surface_get_egl_surface (surface),
+                              rect.x * scale, rect.y * scale, rect.width * scale, rect.height * scale);
+        }
+    }
+#endif*/
 
   gdk_gl_context_make_current (context);
 
