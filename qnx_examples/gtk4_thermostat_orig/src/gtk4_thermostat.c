@@ -35,6 +35,25 @@ int convert_relative_height(int original_height) {
 	return original_height * screen_height / baseline_height;
 }
 
+static void activate_quit (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	GtkApplication *app = user_data;
+	GtkWidget *win;
+	GList *list, *next;
+
+	list = gtk_application_get_windows (app);
+	while (list)
+	{
+		win = list->data;
+		next = list->next;
+
+		gtk_window_destroy (GTK_WINDOW (win));
+
+		list = next;
+	}
+}
+
+
 static void temperature_up(GtkWidget *widget, gpointer data)
 {
 	g_print ("temp up\n");
@@ -109,7 +128,7 @@ static void activate (GtkApplication* app, gpointer user_data)
 	gtk_style_context_add_provider(gtk_widget_get_style_context(target_label), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 	gtk_widget_set_name(target_label, "temperature");
 	gtk_widget_set_size_request (target_label, convert_relative_width (100), convert_relative_height (100));
-	gtk_fixed_put (GTK_FIXED(fixed_container), target_label, convert_relative_width (890 + 15), convert_relative_height (270 + 20));
+	gtk_fixed_put (GTK_FIXED(fixed_container), target_label, convert_relative_width (890), convert_relative_height (270));
 
 	/* show window */
 	gtk_window_set_child (GTK_WINDOW (window), fixed_container);
@@ -121,9 +140,27 @@ int main (int argc, char **argv)
 	GtkApplication *app;
 	int status;
 
+	static GActionEntry app_entries[] = {
+		{ "quit", activate_quit, NULL, NULL, NULL },
+	};
+	struct {
+		const char *action_and_target;
+		const char *accelerators[2];
+	} accels[] = {
+		{ "app.quit", { "<Control>q", NULL } },
+	};
+	int i;
+
 	gtk_init ();
 
 	app = gtk_application_new ("org.gtk.example", G_APPLICATION_DEFAULT_FLAGS);
+	g_action_map_add_action_entries (G_ACTION_MAP (app),
+									app_entries, G_N_ELEMENTS (app_entries),
+									app);
+  	for (i = 0; i < G_N_ELEMENTS (accels); i++) {
+  		gtk_application_set_accels_for_action (app, accels[i].action_and_target, accels[i].accelerators);
+	}
+
 	g_signal_connect (app, "activate", G_CALLBACK (activate), NULL);
 
 	status = g_application_run (G_APPLICATION (app), argc, argv);

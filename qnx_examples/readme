@@ -1,0 +1,3 @@
+To build:
+
+Run `QNX_STAGE=<gtk_installation_path> make -C ./qnx_examples>`

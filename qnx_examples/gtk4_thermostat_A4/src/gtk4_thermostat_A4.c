@@ -249,14 +249,72 @@ static void activate (GtkApplication* app, gpointer user_data)
 	gtk_widget_show (window);
 }
 
+static void
+activate_quit (GSimpleAction *action,
+               GVariant      *parameter,
+               gpointer       user_data)
+{
+  printf("======QUITED\n");
+  GtkApplication *app = user_data;
+  GtkWidget *win;
+  GList *list, *next;
+
+  list = gtk_application_get_windows (app);
+  while (list)
+    {
+      win = list->data;
+      next = list->next;
+
+      gtk_window_destroy (GTK_WINDOW (win));
+
+      list = next;
+    }
+}
+
+static void activate_shift (GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+	printf("Ctrl Shift . pressed\n");
+}
+
+static void activate_question (GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+	printf("Ctrl question pressed\n");
+}
+
+static void activate_info (GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+	printf("Ctrl p pressed\n");
+}
+
 int main (int argc, char **argv)
 {
 	GtkApplication *app;
 	int status;
 
+	static GActionEntry app_entries[] = {
+		{ "quit", activate_quit, NULL, NULL, NULL },
+		{ "question", activate_question, NULL, NULL, NULL},
+		{ "shift", activate_shift, NULL, NULL, NULL},
+		{ "info", activate_info, NULL, NULL, NULL},
+	};
+	struct {
+		const char *action_and_target;
+		const char *accelerators[2];
+	} accels[] = {
+		{ "app.quit", { "<Control>q", NULL } },
+		{ "app.shift", { "<Control><Shift>period", NULL } },
+		{ "app.question", { "<Control>question", NULL } },
+		{ "app.info", { "<Control>p", NULL } },
+	};
+	int i;
+
 	gtk_init ();
 
 	app = gtk_application_new ("org.gtk.example", G_APPLICATION_DEFAULT_FLAGS);
+	g_action_map_add_action_entries (G_ACTION_MAP (app),
+									app_entries, G_N_ELEMENTS (app_entries),
+									app);
+  	for (i = 0; i < G_N_ELEMENTS (accels); i++) {
+  		gtk_application_set_accels_for_action (app, accels[i].action_and_target, accels[i].accelerators);
+	}
+
 	g_signal_connect (app, "activate", G_CALLBACK (activate), NULL);
 
 	status = g_application_run (G_APPLICATION (app), argc, argv);

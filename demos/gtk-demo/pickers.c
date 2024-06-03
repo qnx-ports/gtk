@@ -225,6 +225,7 @@ do_pickers (GtkWidget *do_widget)
   static GtkWidget *window = NULL;
   GtkWidget *table, *label, *picker, *button;
   GtkDropTarget *drop_target;
+  GtkWidget *header;
 
   if (!window)
   {
@@ -233,6 +234,9 @@ do_pickers (GtkWidget *do_widget)
                             gtk_widget_get_display (do_widget));
     gtk_window_set_title (GTK_WINDOW (window), "Pickers and Launchers");
     g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
+
+    header = gtk_header_bar_new ();
+    gtk_window_set_titlebar (GTK_WINDOW (window), header);
 
     table = gtk_grid_new ();
     gtk_widget_set_margin_start (table, 20);

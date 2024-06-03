@@ -969,9 +969,9 @@ gdk_qnxscreen_device_keyboard_event (GdkDisplay *display)
   if (!(flags & KEY_SYM_VALID)) {
     if (flags & KEY_CAP_VALID) {
       gdk_sym = cap;
-      if (gdk_sym == KEYCODE_SLASH) {
-        gdk_sym = KEYCODE_QUESTION;
-      }
+      // if (gdk_sym == KEYCODE_SLASH) {
+      //   gdk_sym = KEYCODE_QUESTION;
+      // }
     } else {
       g_warning (G_STRLOC "key event received but no a valid key value!");
     }
