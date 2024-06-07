@@ -116,7 +116,8 @@ gdk_qnxscreen_display_dispose (GObject *object)
       g_queue_free (qnx_screen_display->zorders);
       qnx_screen_display->zorders = NULL;
     }
-
+  
+  // TODO DESTROY WINDOW AND CONTEXT
   // TODO DISPOSE SEAT & DEVICES!
   // TODO cleanup lookup table
 
@@ -184,6 +185,7 @@ _gdk_qnxscreen_display_open (const gchar *display_name)
   GdkQnxScreenDisplay *qnx_screen_display = NULL;
   GdkMonitor *monitor = NULL;
   screen_display_t *qnx_screen_display_handles = NULL;
+  int size[2] = {0, 0};
 
   /* create our QnxScreenDisplay class */
   display = g_object_new (GDK_TYPE_QNXSCREEN_DISPLAY, NULL);
@@ -305,6 +307,100 @@ _gdk_qnxscreen_display_open (const gchar *display_name)
           monitor = g_object_new (GDK_TYPE_QNXSCREEN_MONITOR, "display", display, NULL);
           g_list_store_append (qnx_screen_display->monitors, monitor);
           ret = gdk_qnxscreen_monitor_init_from_qnxscreen (monitor, qnx_screen_display_handles[i]);
+        }
+    }
+
+  /* create the ancestor qnx screen window for this application */
+  /* for now we are only creating one window for one screen_display === gtk_monitor */
+  if (ret == 0)
+    {
+      ret = screen_create_window_type (&qnx_screen_display->qnxscreen_ancestor_window, qnx_screen_display->qnxscreen_context, SCREEN_APPLICATION_WINDOW);
+      if (ret)
+        {
+          g_critical (G_STRLOC ": failed to create ancestor screen window: %s", strerror (errno));
+        }
+      else
+        {
+          GDK_DEBUG (MISC, "%s created ancestor screen window", QNX_SCREEN);
+          ret = screen_create_window_group (qnx_screen_display->qnxscreen_ancestor_window, NULL);
+          if (ret) 
+          {
+            g_critical (G_STRLOC ": failed to create ancestor screen window group: %s", strerror (errno));
+          }
+          else
+          {
+            ret = screen_get_window_property_pv (qnx_screen_display->qnxscreen_ancestor_window, SCREEN_PROPERTY_GROUP, (void **) &qnx_screen_display->qnxscreen_group);
+            if (ret)
+            {
+              g_critical (G_STRLOC ": failed to get ancestor screen window group handle: %s", strerror (errno));
+            }
+            else
+            {
+              ret = screen_get_window_property_cv (qnx_screen_display->qnxscreen_ancestor_window, SCREEN_PROPERTY_GROUP, sizeof (qnx_screen_display->qnxscreen_group_name), qnx_screen_display->qnxscreen_group_name);
+              if (ret)
+                {
+                  g_critical (G_STRLOC ": failed to get ancestor screen window group name: %s", strerror (errno));
+                }
+              else
+                {
+                  GDK_DEBUG (MISC, "%s Create Window group for toplevel: %s", QNX_SCREEN, qnx_screen_display->qnxscreen_group_name);
+                }
+            }
+          }
+          if (num_screens < 1)
+          {
+            g_critical (G_STRLOC "%s No monitor found", QNX_SCREEN);
+          }
+          else
+          {
+            /* TODO: support multiple monitors*/
+            g_warning (G_STRLOC "%s TODO: We are only using the first monitor, need to support multiple", QNX_SCREEN);
+            ret = screen_get_display_property_iv (qnx_screen_display_handles[0], SCREEN_PROPERTY_SIZE, size);
+            if (ret)
+            {
+              g_critical (G_STRLOC ": failed to retrieve display resolution: %s", strerror(errno));
+            }
+            ret = screen_set_window_property_iv (qnx_screen_display->qnxscreen_ancestor_window, SCREEN_PROPERTY_SIZE, size);
+            if (ret)
+            {
+              g_critical (G_STRLOC ": failed to set ancestor screen window size: %s", strerror (errno));
+            }
+            else
+            {
+              GDK_DEBUG (MISC, "%s set ancestor window to size: %dx%d", QNX_SCREEN, size[0], size[1]);
+            }
+          }
+          ret = screen_create_window_buffers (qnx_screen_display->qnxscreen_ancestor_window, 1);
+          if (ret)
+          {
+            g_critical (G_STRLOC ": failed to create buffers for ancestor window: %s", strerror (errno));
+          }
+          screen_buffer_t screen_buf;
+          int stride;
+          void *pointer;
+          ret = screen_get_window_property_pv (qnx_screen_display->qnxscreen_ancestor_window, SCREEN_PROPERTY_RENDER_BUFFERS, (void **)&screen_buf);
+          if (ret)
+          {
+            g_critical (G_STRLOC ": failed to get ancestor window buffer: %s", strerror(errno));
+          }
+          ret = screen_get_buffer_property_pv(screen_buf, SCREEN_PROPERTY_POINTER, &pointer);
+          if (ret) {
+            g_critical (G_STRLOC ": failed to get ancestor window buffer: %s", strerror(errno));
+          }
+          ret = screen_get_buffer_property_iv(screen_buf, SCREEN_PROPERTY_STRIDE, &stride);
+          if (ret) {
+            g_critical (G_STRLOC ": failed to get ancestor window buffer: %s", strerror(errno));
+          }
+          else
+          {
+            memset(pointer, 0x0, stride * size[1]);
+            int rect[4] = {0, 0, size[0], size[1]};
+            ret = screen_post_window (qnx_screen_display->qnxscreen_ancestor_window, screen_buf, 1, rect, 0);
+            if (ret)
+            {
+              g_critical (G_STRLOC ": failed to post ancestor window: %s", strerror(errno));
+            }
+          }
         }
     }
 

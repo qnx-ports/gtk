@@ -30,6 +30,8 @@
 #include "glib.h"
 #include <screen/screen.h>
 
+#define MAX_QNXSCREEN_NAME_LEN (128)
+
 struct _GdkQnxScreenDisplay
 {
   GdkDisplay parent_instance;
@@ -46,6 +48,13 @@ struct _GdkQnxScreenDisplay
   GdkKeymap *keymap;
   GdkSurface *focused_surface;
   screen_context_t qnxscreen_context;
+  /* We create an ancestor window as a workaround for window manager
+   * It's supposed to be the common ancestor for any window
+   * But this is not SCREEN_ROOT_WINDOW */
+  screen_window_t qnxscreen_ancestor_window;
+  screen_group_t qnxscreen_group;
+  char qnxscreen_group_name[MAX_QNXSCREEN_NAME_LEN];
+
   screen_event_t event;
   GHashTable *surface_window_table;
 

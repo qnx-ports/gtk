@@ -914,6 +914,54 @@ gdk_qnxscreen_toplevel_present (GdkToplevel *toplevel, GdkToplevelLayout *layout
   gboolean fullscreen;
   gboolean maximize;
 
+  // If has transient_for, use it as the parent
+  // Otherwise, use the display window as the parent. 
+  int ret;
+  screen_window_t parent_window_handle;
+  char* parent_group_name;
+  GdkQnxScreenSurface *impl = GDK_QNXSCREEN_SURFACE (surface);
+  GdkQnxScreenDisplay *display_impl = GDK_QNXSCREEN_DISPLAY (display);
+  if (surface->transient_for)
+  {
+    gdk_qnxscreen_surface_create_group (surface->transient_for);
+
+    GdkQnxScreenSurface *transient_impl = GDK_QNXSCREEN_SURFACE (surface->transient_for);
+    GDK_DEBUG (MISC, "%s toplevel present: create and join group for transient window.", QNX_SCREEN);
+    parent_window_handle = transient_impl->window_handle;
+    parent_group_name = transient_impl->group_name;
+  }
+  else
+  {  
+    GDK_DEBUG (MISC, "%s toplevel present: create and join group for ancestor window.", QNX_SCREEN);
+    parent_window_handle =  display_impl ->qnxscreen_ancestor_window;
+    parent_group_name = display_impl -> qnxscreen_group_name;
+  }
+  if (NULL == parent_window_handle || strlen (parent_group_name) <= 0)
+  {
+    g_critical (G_STRLOC ": toplevel window has invalid qnxscreen window group");
+  }
+  else
+  {
+    ret = screen_join_window_group (impl->window_handle, parent_group_name);
+    if (ret)
+    {
+      g_critical (G_STRLOC ": toplevel window failed join window group: %s", strerror (errno));
+    }
+    else
+    {
+      ret = screen_flush_context (impl->context_handle, 0);
+      if (ret)
+      {
+        g_critical (G_STRLOC ": toplevel window failed flush context: %s", strerror (errno));
+      }
+      else
+      {
+        GDK_DEBUG (MISC, "%s, toplevel window joined qnxscreen window group: %s", QNX_SCREEN, parent_group_name);
+      }
+    }
+  }
+  
+  gdk_qnxscreen_surface_raise (surface);
   monitor = gdk_display_get_monitor_at_surface (display, surface);
   if (monitor)
     {
@@ -1035,8 +1083,8 @@ gdk_qnxscreen_toplevel_constructed (GObject *object)
   /* frame clock: a toplevel surface does not have a parent, so use the parent frame clock */
   gdk_surface_set_frame_clock (surface, _gdk_frame_clock_idle_new ());
 
-  /* create QnxScreen window of type SCREEN_APPLICATION_WINDOW */
-  gdk_qnxscreen_create_window (qnx_screen_surface, SCREEN_APPLICATION_WINDOW);
+  /* create QnxScreen window of type SCREEN_CHILD_WINDOW */
+  gdk_qnxscreen_create_window (qnx_screen_surface, SCREEN_CHILD_WINDOW);
 
   /* call parent */
   G_OBJECT_CLASS (gdk_qnxscreen_toplevel_parent_class)->constructed (object);
