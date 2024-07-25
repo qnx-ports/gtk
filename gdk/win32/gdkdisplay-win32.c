@@ -19,6 +19,8 @@
 #include "config.h"
 
 #define VK_USE_PLATFORM_WIN32_KHR
+#define COBJMACROS
+#define INITGUID
 
 #include "gdk.h"
 #include "gdkprivate-win32.h"
@@ -652,6 +654,51 @@ gdk_win32_display_sync (GdkDisplay * display)
   GdiFlush ();
 }
 
+/* no g_clear_pointer() on the DX COM objects, as the DX COM C-interfaces use macros, not functions for the <COM_TYPE>_Release() items */
+#ifdef HAVE_D3D11_D3D12
+static void
+dispose_dx_items (GdkWin32DXItems *dx_items)
+{
+  if (dx_items == NULL)
+    return;
+
+  if (dx_items->dxgi_factory != NULL)
+    {
+      IDXGIFactory2_Release (dx_items->dxgi_factory);
+      dx_items->dxgi_factory = NULL;
+    }
+
+  if (dx_items->dx11_device_context != NULL)
+    {
+      ID3D11DeviceContext_Release (dx_items->dx11_device_context);
+      dx_items->dx11_device_context = NULL;
+    }
+
+  if (dx_items->dx11_device != NULL)
+    {
+      ID3D11Device_Release (dx_items->dx11_device);
+      dx_items->dx11_device = NULL;
+    }
+
+  if (dx_items->dx12_cmd_queue != NULL)
+    {
+      ID3D12CommandQueue_Release (dx_items->dx12_cmd_queue);
+      dx_items->dx12_cmd_queue = NULL;
+    }
+
+  if (dx_items->dx12_device != NULL)
+    {
+      ID3D12Device_Release (dx_items->dx12_device);
+      dx_items->dx12_device = NULL;
+    }
+
+  g_clear_pointer (&dx_items, g_free);
+}
+#else
+/* no-op */
+#define dispose_dx_items(x)
+#endif
+
 static void
 gdk_win32_display_dispose (GObject *object)
 {
@@ -663,6 +710,8 @@ gdk_win32_display_dispose (GObject *object)
       wglDeleteContext (display_win32->dummy_context_wgl.hglrc);
       display_win32->dummy_context_wgl.hglrc = NULL;
     }
+
+  dispose_dx_items (display_win32->dx_items);
 
   if (display_win32->hwnd != NULL)
     {
@@ -1028,6 +1077,7 @@ static void
 gdk_win32_display_init (GdkWin32Display *display_win32)
 {
   const char *scale_str = g_getenv ("GDK_SCALE");
+  HRESULT hr = S_OK;
 
   display_win32->monitors = G_LIST_MODEL (g_list_store_new (GDK_TYPE_MONITOR));
 
@@ -1051,6 +1101,70 @@ gdk_win32_display_init (GdkWin32Display *display_win32)
 
   _gdk_win32_display_init_cursors (display_win32);
   gdk_win32_display_check_composited (display_win32);
+
+#ifdef HAVE_D3D11_D3D12
+  GdkWin32DXItems *dx_items = g_new0 (GdkWin32DXItems, 1);
+
+  /*
+   * for WGL, we want to use the WGL_NV_DX_interop2 extension, but it only supports DX11 not DX12,
+   * so we need to create an ID3D11on12 device
+   */
+  if (dx_items != NULL)
+    {
+      const D3D12_COMMAND_QUEUE_DESC d3d12_cmd_queue_desc = /* XXX: "direct" for now for the type */
+        {
+          .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+          .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
+          .Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
+        };
+      UINT d3d11device_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+      gboolean use_dx_debug = GDK_DISPLAY_DEBUG_CHECK (GDK_DISPLAY (display_win32), GL_DEBUG);
+
+      if (use_dx_debug)
+        d3d11device_flags |= D3D11_CREATE_DEVICE_DEBUG;
+
+      hr = D3D12CreateDevice (NULL, D3D_FEATURE_LEVEL_11_0, &IID_ID3D12Device, &dx_items->dx12_device);
+      if (SUCCEEDED (hr))
+        hr = ID3D12Device_CreateCommandQueue (dx_items->dx12_device,
+                                             &d3d12_cmd_queue_desc,
+	                                         &IID_ID3D12CommandQueue,
+                                             &dx_items->dx12_cmd_queue);
+
+      if (SUCCEEDED (hr))
+	    {
+          D3D_FEATURE_LEVEL d3d_feature_levels[] = {D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_12_0};
+          hr = D3D11On12CreateDevice ((IUnknown *)dx_items->dx12_device,
+                                      d3d11device_flags,
+                                      d3d_feature_levels,
+                                      G_N_ELEMENTS (d3d_feature_levels),
+                                      NULL, /* ppCommandQueues, XXX: NULL for now */
+                                      0, /* NumQueues */
+                                      0, /* NodeMask */
+                                     &dx_items->dx11_device,
+                                     &dx_items->dx11_device_context,
+                                      NULL);
+        }
+
+      if (SUCCEEDED (hr))
+        hr = CreateDXGIFactory2 (use_dx_debug ? DXGI_CREATE_FACTORY_DEBUG : 0,
+                                &IID_IDXGIFactory2,
+                                &dx_items->dxgi_factory);
+      if (SUCCEEDED (hr))
+        {
+          display_win32->use_dxgi = TRUE;
+          display_win32->dx_items = dx_items;
+        }
+    }
+  else
+	hr = E_OUTOFMEMORY;
+
+  if (!display_win32->use_dxgi)
+    {
+      dispose_dx_items (dx_items);
+
+      g_warning ("Unable to create ID3D11on12 device or DXGI factory, error code: %d", hr);
+    }
+#endif
 }
 
 void

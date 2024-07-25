@@ -636,6 +636,14 @@ gdk_win32_display_init_wgl (GdkDisplay  *display,
     epoxy_has_wgl_extension (hdc, "WGL_ARB_pixel_format");
   display_win32->hasGlWINSwapHint =
     epoxy_has_gl_extension ("GL_WIN_swap_hint");
+  if (display_win32->use_dxgi)
+    {
+      display_win32->hasWglNVDXinterop2 =
+        epoxy_has_wgl_extension (hdc, "WGL_NV_DX_interop2");
+    }
+
+  display_win32->hasGlWINSwapHint =
+    epoxy_has_gl_extension ("GL_WIN_swap_hint");
 
   context = g_object_new (GDK_TYPE_WIN32_GL_CONTEXT_WGL,
                           "display", display,
@@ -656,6 +664,7 @@ gdk_win32_display_init_wgl (GdkDisplay  *display,
                          "\t* WGL_ARB_create_context: %s\n"
                          "\t* WGL_EXT_swap_control: %s\n"
                          "\t* WGL_OML_sync_control: %s\n"
+                         "\t* WGL_NV_DX_interop2 (requires DXGI 1.3 support): %s\n"
                          "\t* GL_WIN_swap_hint: %s\n",
                          major, minor,
                          glGetString (GL_VENDOR),
@@ -663,6 +672,7 @@ gdk_win32_display_init_wgl (GdkDisplay  *display,
                          display_win32->hasWglARBCreateContext ? "yes" : "no",
                          display_win32->hasWglEXTSwapControl ? "yes" : "no",
                          display_win32->hasWglOMLSyncControl ? "yes" : "no",
+                         display_win32->hasWglNVDXinterop2 ? "yes" : "no",
                          display_win32->hasGlWINSwapHint ? "yes" : "no"));
   }
 

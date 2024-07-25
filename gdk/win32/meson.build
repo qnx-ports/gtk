@@ -63,6 +63,16 @@ gdk_win32_deps = [
   cc.find_library('opengl32'),
 ]
 
+d3d11_cargs = []
+d3d11_dep = cc.find_library('d3d11', has_headers: ['d3d11.h', 'd3d11on12.h'], required: false)
+d3d12_dep = cc.find_library('d3d12', has_headers: ['d3d12.h'], required: false)
+dxgi_dep = cc.find_library('dxgi', has_headers: ['dxgi1_3.h'], required: false)
+
+if d3d11_dep.found() and d3d12_dep.found() and dxgi_dep.found()
+  gdk_win32_deps += [d3d11_dep, d3d12_dep, dxgi_dep]
+  d3d11_cargs += '-DHAVE_D3D11_D3D12'
+endif
+
 libgdk_win32 = static_library('gdk-win32',
   sources: [ gdk_win32_sources, gdk_gen_headers ],
   include_directories: [ confinc, gdkinc ],
@@ -72,6 +82,6 @@ libgdk_win32 = static_library('gdk-win32',
     '-DINSIDE_GDK_WIN32',
     '-D_WIN32_WINNT=0x0601',
     '-DWINVER=0x0601',
-  ],
+  ] + d3d11_cargs,
   dependencies: [ gdk_deps, gdk_win32_deps ],
 )

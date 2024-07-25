@@ -30,6 +30,13 @@
 # include <epoxy/egl.h>
 #endif
 
+#ifdef HAVE_D3D11_D3D12
+#include <d3d11.h>
+#include <d3d11on12.h>
+#include <d3d12.h>
+#include <dxgi1_3.h>
+#endif
+
 /* Define values used to set DPI-awareness */
 typedef enum _GdkWin32ProcessDpiAwareness {
   PROCESS_DPI_UNAWARE = 0,
@@ -113,6 +120,19 @@ typedef struct
   HGLRC hglrc;
 } GdkWin32GLDummyContextWGL;
 
+#ifdef HAVE_D3D11_D3D12
+typedef struct
+{
+  ID3D12Device *dx12_device;
+  ID3D12CommandQueue *dx12_cmd_queue;
+  ID3D11Device *dx11_device;
+  ID3D11DeviceContext *dx11_device_context;
+  IDXGIFactory2 *dxgi_factory;
+} GdkWin32DXItems;
+#else
+typedef void * GdkWin32DXItems;
+#endif
+
 struct _GdkWin32Display
 {
   GdkDisplay display;
@@ -135,6 +155,7 @@ struct _GdkWin32Display
   guint hasWglOMLSyncControl : 1;
   guint hasWglARBPixelFormat : 1;
   guint hasGlWINSwapHint : 1;
+  guint hasWglNVDXinterop2 : 1;
 
 #ifdef HAVE_EGL
   guint hasEglKHRCreateContext : 1;
@@ -170,6 +191,10 @@ struct _GdkWin32Display
 
   /* Running CPU items */
   guint running_on_arm64 : 1;
+
+  /* D3D11 Device and DXGIFactory */
+  guint use_dxgi : 1;
+  GdkWin32DXItems *dx_items;
 };
 
 struct _GdkWin32DisplayClass
