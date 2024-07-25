@@ -59,6 +59,9 @@ struct _GdkWin32GLContextWGL
   } swap_method;
 
   glAddSwapHintRectWIN_t ptr_glAddSwapHintRectWIN;
+
+  /* DX/GL interop HANDLE */
+  HANDLE dx_interop_device;
 };
 
 typedef struct _GdkWin32GLContextClass    GdkWin32GLContextWGLClass;
@@ -642,9 +645,6 @@ gdk_win32_display_init_wgl (GdkDisplay  *display,
         epoxy_has_wgl_extension (hdc, "WGL_NV_DX_interop2");
     }
 
-  display_win32->hasGlWINSwapHint =
-    epoxy_has_gl_extension ("GL_WIN_swap_hint");
-
   context = g_object_new (GDK_TYPE_WIN32_GL_CONTEXT_WGL,
                           "display", display,
                           NULL);
@@ -664,16 +664,16 @@ gdk_win32_display_init_wgl (GdkDisplay  *display,
                          "\t* WGL_ARB_create_context: %s\n"
                          "\t* WGL_EXT_swap_control: %s\n"
                          "\t* WGL_OML_sync_control: %s\n"
-                         "\t* WGL_NV_DX_interop2 (requires DXGI 1.3 support): %s\n"
-                         "\t* GL_WIN_swap_hint: %s\n",
+                         "\t* GL_WIN_swap_hint: %s\n"
+                         "\t* WGL_NV_DX_interop2 (requires DXGI 1.3 support): %s\n",
                          major, minor,
                          glGetString (GL_VENDOR),
                          display_win32->hasWglARBPixelFormat ? "yes" : "no",
                          display_win32->hasWglARBCreateContext ? "yes" : "no",
                          display_win32->hasWglEXTSwapControl ? "yes" : "no",
                          display_win32->hasWglOMLSyncControl ? "yes" : "no",
-                         display_win32->hasWglNVDXinterop2 ? "yes" : "no",
-                         display_win32->hasGlWINSwapHint ? "yes" : "no"));
+                         display_win32->hasGlWINSwapHint ? "yes" : "no",
+                         display_win32->hasWglNVDXinterop2 ? "yes" : "no"));
   }
 
   wglMakeCurrent (NULL, NULL);
@@ -1112,12 +1112,41 @@ gdk_win32_gl_context_wgl_realize (GdkGLContext *context,
           context_wgl->ptr_glAddSwapHintRectWIN = (glAddSwapHintRectWIN_t)
             wglGetProcAddress ("glAddSwapHintRectWIN");
         }
+
+      /* Create the HANDLE for the D3D11/GL interop device */
+      if (display_win32->hasWglNVDXinterop2 && context_wgl->dx_interop_device == NULL)
+        {
+          context_wgl->dx_interop_device = wglDXOpenDeviceNV (display_win32->dx_items->dx11_device);
+
+          g_message ("display_win32->dx_items->dx11_device creation succeeded: %s", display_win32->dx_items->dx11_device == NULL ? "no" : "yes");
+          g_message ("%d", GetLastError ());
+          g_message ("context_wgl->dx_interop_device creation succeeded: %s", context_wgl->dx_interop_device == NULL ? "no" : "yes");
+		  g_message (g_win32_error_message (GetLastError()));
+        }
+      wglMakeCurrent (hdc_current, hglrc_current);
     }
 
   wglMakeCurrent (hdc_current, hglrc_current);
 
   if (context_wgl->swap_method == SWAP_METHOD_UNDEFINED)
     g_message ("Unknown swap method");
+
+  /* Create the HANDLE for the D3D11/GL interop device */
+  if (display_win32->hasWglNVDXinterop2 && context_wgl->dx_interop_device == NULL)
+    {
+      HDC hdc_current = wglGetCurrentDC ();
+      HGLRC hglrc_current = wglGetCurrentContext ();
+
+      wglMakeCurrent (hdc, hglrc);
+      context_wgl->dx_interop_device = wglDXOpenDeviceNV (display_win32->dx_items->dx11_device);
+
+      g_message ("display_win32->dx_items->dx11_device creation succeeded: %s", display_win32->dx_items->dx11_device == NULL ? "no" : "yes");
+      g_message ("%d", GetLastError ());
+      g_message ("context_wgl->dx_interop_device creation succeeded: %s", context_wgl->dx_interop_device == NULL ? "no" : "yes");
+      g_message (g_win32_error_message (GetLastError()));
+
+      wglMakeCurrent (hdc_current, hglrc_current);
+    }
 
   GDK_NOTE (OPENGL,
             g_print ("Created WGL context[%p], pixel_format=%d\n",
