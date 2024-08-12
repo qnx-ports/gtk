@@ -94,6 +94,7 @@ compare_render_tests = [
   'glyph-subpixel-position',
   'glyph-scaling',
   'glyph-antialias',
+  'gradient-interpolation-nocairo-nogl',
   'huge-height',
   'huge-width',
   'inset-shadow-multiple',
