@@ -892,8 +892,13 @@ gdk_qnxscreen_device_keyboard_event (GdkDisplay *display)
   int scan = 0;
   int flags = 0;
   int modifiers = 0;
-  int gdk_sym = 0;
+  GdkKeymap *keymap;
+  guint gdk_sym;
+  int gdk_level;
+  GdkTranslatedKey translated = {0};
+  GdkTranslatedKey no_lock = {0};
   GdkModifierType gdk_modifiers = GDK_NO_MODIFIER_MASK;
+  GdkModifierType consumed_gdk_modifiers = GDK_NO_MODIFIER_MASK;
 
   /* get the QNX window where the keyboard event occurred */
   if (ret == 0)
@@ -922,16 +927,6 @@ gdk_qnxscreen_device_keyboard_event (GdkDisplay *display)
       if (ret == -1)
         {
           g_critical (G_STRLOC "failed to get key event cap: %s", strerror (errno));
-        }
-    }
-
-  /* get the physical key position */
-  if (ret == 0)
-    {
-      ret = screen_get_event_property_iv (qnx_screen_display->event, SCREEN_PROPERTY_SCAN, &scan);
-      if (ret == -1)
-        {
-          g_critical (G_STRLOC "failed to get key event scan code: %s", strerror (errno));
         }
     }
 
@@ -965,40 +960,50 @@ gdk_qnxscreen_device_keyboard_event (GdkDisplay *display)
     If sym is not available, check cap values
     This usually happens when modifier is on
    */
-  gdk_sym = sym;
   if (!(flags & KEY_SYM_VALID)) {
     if (flags & KEY_CAP_VALID) {
-      gdk_sym = cap;
-      // if (gdk_sym == KEYCODE_SLASH) {
-      //   gdk_sym = KEYCODE_QUESTION;
-      // }
+      sym = cap;
     } else {
       g_warning (G_STRLOC "key event received but no a valid key value!");
     }
   }
 
+  keymap = gdk_display_get_keymap (GDK_DISPLAY (display));
   /* Convert QNX modifier to GDK modifier*/
-  if ( modifiers & KEYMOD_SHIFT ) {  gdk_modifiers |= GDK_SHIFT_MASK; }
-  if ( modifiers & KEYMOD_CTRL ) {  gdk_modifiers |= GDK_CONTROL_MASK; }
-  if ( modifiers & KEYMOD_ALT ) {  gdk_modifiers |= GDK_ALT_MASK; }
-  if ( modifiers & KEYMOD_CAPS_LOCK ) {  gdk_modifiers |= GDK_LOCK_MASK; } // Assumed Lock is Capslock
-
-  /* create event and deliver */
-  GdkTranslatedKey translated;
-  translated.keyval = sym;
-  translated.consumed = 0;
+  gdk_modifiers = _gdk_qnxscreen_keymap_get_gdk_modifiers(keymap, modifiers);
+  gdk_keymap_translate_keyboard_state(keymap, sym, gdk_modifiers, 0, &gdk_sym, NULL, &gdk_level, &consumed_gdk_modifiers);
+  
+  translated.keyval = gdk_sym;
+  translated.consumed = consumed_gdk_modifiers;
   translated.layout = 0;
-  translated.level = 0;
+  translated.level = gdk_level;
+
+  if (gdk_modifiers & GDK_LOCK_MASK) {
+    gdk_keymap_translate_keyboard_state(keymap, 
+                                        sym, 
+                                        gdk_modifiers & ~GDK_LOCK_MASK, 
+                                        0, 
+                                        &gdk_sym, 
+                                        NULL, 
+                                        &gdk_level, 
+                                        &consumed_gdk_modifiers);
+    no_lock.keyval = gdk_sym;
+    no_lock.consumed = consumed_gdk_modifiers;
+    no_lock.layout = 0;
+    no_lock.level = gdk_level;
+  } else {
+    no_lock = translated;
+  }
   event = gdk_key_event_new (
       flags & KEY_DOWN ? GDK_KEY_PRESS : GDK_KEY_RELEASE,
       surface,
       qnx_screen_display->core_keyboard,
       GDK_QNXSCREEN_TIME (),
-      gdk_sym,
+      sym,
       gdk_modifiers,
       FALSE,
       &translated,
-      &translated,
+      &no_lock,
       NULL);
 
   GDK_DEBUG (
@@ -1006,7 +1011,7 @@ gdk_qnxscreen_device_keyboard_event (GdkDisplay *display)
       "%s key %s sym %x cap %d scan %x flags %d mods %d",
       QNX_SCREEN,
       flags & KEY_DOWN ? "press" : "release",
-      gdk_sym, cap, scan, flags, gdk_modifiers);
+      sym, cap, scan, flags, gdk_modifiers);
 
   gdk_qnxscreen_event_deliver_event (display, event);
 }

@@ -26,6 +26,8 @@
 #include "gdk/gdkseatdefaultprivate.h"
 #include "gdk/gdksurfaceprivate.h"
 #include "gdkdisplay-qnxscreen-class.h"
+#include "gdkkeys-qnxscreen.h"
+#include "gdkprivate-qnxscreen.h"
 #include "gio/gio.h"
 #include "glib.h"
 #include <screen/screen.h>

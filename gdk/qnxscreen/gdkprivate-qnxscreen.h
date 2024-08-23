@@ -21,6 +21,8 @@
 
 #include "gdk/gdk.h"
 
-GdkDisplay *_gdk_qnxscreen_display_open (const gchar *display_name);
+#define GDK_MOD2_MASK (1 << 4) // Customized modifier for numslock
 
+GdkDisplay *_gdk_qnxscreen_display_open (const gchar *display_name);
+GdkModifierType _gdk_qnxscreen_keymap_get_gdk_modifiers (GdkKeymap *keymap, guint32 mods);
 #endif

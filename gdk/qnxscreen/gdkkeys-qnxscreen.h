@@ -22,7 +22,6 @@
 #include "gdk/gdk.h"
 #include "gdk/gdkdisplayprivate.h"
 #include "gdk/gdkkeysprivate.h"
-#include "gdk/gdkkeysyms.h"
 
 typedef struct
 {
@@ -40,5 +39,4 @@ typedef struct
 
 GType gdk_qnxscreen_keymap_get_type (void);
 GdkKeymap *gdk_qnxscreen_keymap_get_keymap (GdkDisplay *display);
-
 #endif
