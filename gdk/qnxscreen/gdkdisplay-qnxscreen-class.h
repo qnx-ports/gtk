@@ -21,6 +21,8 @@
 
 #include "gdk/gdk.h"
 
+G_BEGIN_DECLS
+
 typedef struct _GdkQnxScreenDisplay GdkQnxScreenDisplay;
 typedef struct _GdkQnxScreenDisplayClass GdkQnxScreenDisplayClass;
 
@@ -35,4 +37,6 @@ GType gdk_qnxscreen_display_get_type (void);
 void gdk_qnxscreen_display_management_event (GdkDisplay *display);
 void gdk_qnxscreen_display_surface_destroyed (GdkDisplay *display, GdkSurface *surface);
 
+gboolean _gdk_qnxscreen_display_position_surface (GdkDisplay *display, GdkSurface *surface, int *x, int *y);
+G_END_DECLS
 #endif
