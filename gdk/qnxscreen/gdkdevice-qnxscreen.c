@@ -563,6 +563,96 @@ gdk_qnxscreen_device_pointer_event (GdkDisplay *display)
     }
 }
 
+static GQuark quark_needs_enter = 0;
+
+static GdkEvent *
+create_synth_crossing_event (GdkEventType     evtype,
+                             GdkCrossingMode  mode,
+                             GdkEvent        *real_event)
+{
+  GdkEvent *event;
+  double x, y;
+
+  g_assert (evtype == GDK_ENTER_NOTIFY || evtype == GDK_LEAVE_NOTIFY);
+
+  gdk_event_get_position (real_event, &x, &y);
+  event = gdk_crossing_event_new (evtype,
+                                  gdk_event_get_surface (real_event),
+                                  gdk_event_get_device (real_event),
+                                  gdk_event_get_time (real_event),
+                                  gdk_event_get_modifier_state (real_event),
+                                  x, y,
+                                  mode,
+                                  GDK_NOTIFY_ANCESTOR);
+
+  return event;
+}
+
+
+static void
+handle_touch_synthetic_crossing (GdkEvent *event)
+{
+  GdkEventType evtype = gdk_event_get_event_type (event);
+  GdkEvent *crossing = NULL;
+  GdkSeat *seat = gdk_event_get_seat (event);
+  gboolean needs_enter, set_needs_enter = FALSE;
+
+  if (quark_needs_enter == 0)
+    quark_needs_enter = g_quark_from_static_string ("gdk-qnxscreen-needs-enter-after-touch-end");
+
+  needs_enter =
+    GPOINTER_TO_UINT (g_object_get_qdata (G_OBJECT (seat), quark_needs_enter));
+
+  if (evtype == GDK_MOTION_NOTIFY && needs_enter)
+    {
+      set_needs_enter = FALSE;
+      crossing = create_synth_crossing_event (GDK_ENTER_NOTIFY,
+                                              GDK_CROSSING_DEVICE_SWITCH,
+                                              event);
+    }
+  else if (evtype == GDK_TOUCH_BEGIN && needs_enter &&
+           gdk_event_get_pointer_emulated (event))
+    {
+      set_needs_enter = FALSE;
+      crossing = create_synth_crossing_event (GDK_ENTER_NOTIFY,
+                                              GDK_CROSSING_TOUCH_BEGIN,
+                                              event);
+    }
+  else if (evtype == GDK_TOUCH_END &&
+           gdk_event_get_pointer_emulated (event))
+    {
+      set_needs_enter = TRUE;
+      crossing = create_synth_crossing_event (GDK_LEAVE_NOTIFY,
+                                              GDK_CROSSING_TOUCH_END,
+                                              event);
+    }
+  else if (evtype == GDK_ENTER_NOTIFY ||
+           evtype == GDK_LEAVE_NOTIFY)
+    {
+      /* We are receiving or shall receive a real crossing event,
+       * turn this off.
+       */
+      set_needs_enter = FALSE;
+    }
+  else
+    return;
+
+  if (needs_enter != set_needs_enter)
+    {
+      if (!set_needs_enter)
+        g_object_steal_qdata (G_OBJECT (seat), quark_needs_enter);
+      else
+        g_object_set_qdata (G_OBJECT (seat), quark_needs_enter,
+                            GUINT_TO_POINTER (TRUE));
+    }
+
+  if (crossing)
+    {
+      gdk_qnxscreen_event_deliver_event (gdk_seat_get_display (seat), crossing);
+    }
+}
+
+
 static void
 emit_touch_event (GdkDisplay *display, GdkQnxScreenDevice *touch_state, int touch_id, GdkEventType touch_type)
 {
@@ -645,33 +735,10 @@ emit_touch_event (GdkDisplay *display, GdkQnxScreenDevice *touch_state, int touc
     {
       /* Set the button mask, based on the event type */
       touch_state->buttons = buttons;
-      /* 
-      TODO: Although this somehow works, but this shouldn't be a fix
-      Without this motion event, the real issue is, sometimes when we use touch screen
-      There is no real reasponse to the buttons/dropdown menus. It can be focused, 
-      but never selected. After some debug, we found that when the issue happens, 
-      there are always some ghost motion event coming out from nowhere (not qnx).
-      And for the few times that touch input works fine, there is no such motion
-      notify event. (Don't use GDK_DEBUG=events cuz that will not result in the error. 
-      Instead, uncomment the lines in gdkevents.c gdk_event_alloc)
-      We don't know why adding this motion event works. But it seemslying 
-      solves the issue.
-      */
-      GdkEvent *motion_event = gdk_motion_event_new (
-      touch_state->surface,
-      display_impl->core_pointer,
-      NULL,
-      GDK_QNXSCREEN_TIME (),
-      touch_state->buttons,
-      touch_state->window_pos[0],
-      touch_state->window_pos[1],
-      NULL);
-
-      gdk_qnxscreen_event_deliver_event (display, motion_event);
 
       GdkEvent *event = gdk_touch_event_new (
           touch_type,
-          GINT_TO_POINTER (0),
+          GINT_TO_POINTER (touch_sequence), // This is required to properly handle focus event.
           touch_state->surface,
           display_impl->core_pointer,
           GDK_QNXSCREEN_TIME (),
@@ -695,6 +762,8 @@ emit_touch_event (GdkDisplay *display, GdkQnxScreenDevice *touch_state, int touc
           touch_state->buttons,
           touch_state->surface);
 
+      // Crossing event is required to be sent for TOUCH_BEGIN and TOUCH_END events as they can clear out the PRELIGHT status.
+      handle_touch_synthetic_crossing (event);
       gdk_qnxscreen_event_deliver_event (display, event);
     }
 }
