@@ -108,3 +108,43 @@ gdk_qnxscreen_monitor_init_from_qnxscreen (GdkMonitor *monitor, screen_display_t
 
   return ret;
 }
+
+void
+_gdk_qnxscreen_monitor_clamp (GdkQnxScreenMonitor *self,
+                              GdkRectangle    *area)
+{
+
+  g_return_if_fail (GDK_IS_QNXSCREEN_MONITOR (self));
+  g_return_if_fail (area != NULL);
+
+  GdkRectangle monitor_geometry;
+  gdk_monitor_get_geometry (GDK_MONITOR(self), &monitor_geometry);
+
+  if (area->x + area->width > monitor_geometry.x + monitor_geometry.width) {
+    area->x = monitor_geometry.x + monitor_geometry.width - area->width;
+  }
+
+  if (area->x < monitor_geometry.x) {
+    area->x = monitor_geometry.x;
+  }
+
+  if (area->y + area->height > monitor_geometry.y + monitor_geometry.height) {
+    area->y = monitor_geometry.y + monitor_geometry.height - monitor_geometry.width;
+  }
+
+  if (area->y < monitor_geometry.y) {
+    area->y = monitor_geometry.y;
+  }
+
+  if (area->width >= monitor_geometry.width)
+  {
+    area->width = monitor_geometry.width;
+    GDK_DEBUG (MISC, "%s clamped window width to %d", QNX_SCREEN, area->width);
+  }
+
+  if (area->height >= monitor_geometry.height)
+  {
+    area->height = monitor_geometry.height;
+    GDK_DEBUG (MISC, "%s clamped window height to %d", QNX_SCREEN, area->height);
+  }
+}

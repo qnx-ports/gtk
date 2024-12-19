@@ -22,6 +22,8 @@
 #include "gdk/gdk.h"
 #include <screen/screen.h>
 
+G_BEGIN_DECLS
+
 typedef struct _GdkQnxScreenMonitor GdkQnxScreenMonitor;
 typedef struct _GdkQnxScreenMonitorClass GdkQnxScreenMonitorClass;
 
@@ -35,4 +37,6 @@ typedef struct _GdkQnxScreenMonitorClass GdkQnxScreenMonitorClass;
 GType gdk_qnxscreen_monitor_get_type (void);
 int gdk_qnxscreen_monitor_init_from_qnxscreen (GdkMonitor *monitor, screen_display_t qnx_screen_display);
 
+void _gdk_qnxscreen_monitor_clamp (GdkQnxScreenMonitor *self, GdkRectangle *area);
+G_END_DECLS
 #endif

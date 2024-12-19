@@ -16,27 +16,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __GDK_QNXSCREEN_KEYS_H__
-#define __GDK_QNXSCREEN_KEYS_H__
+#ifndef __GDK_TOPLEVEL_QNXSCREEN_CLASS_H__
+#define __GDK_TOPLEVEL_QNXSCREEN_CLASS_H__
 
 #include "gdk/gdk.h"
-#include "gdk/gdkdisplayprivate.h"
-#include "gdk/gdkkeysprivate.h"
+#include "gdk/gdksurfaceprivate.h"
 
-typedef struct
-{
-  GdkKeymap parent_instance;
-} GdkQnxScreenKeymap;
+typedef struct _GdkQnxScreenToplevel GdkQnxScreenToplevel;
+typedef struct _GdkQnxScreenToplevelClass GdkQnxScreenToplevelClass;
 
-typedef struct
-{
-  GdkKeymapClass keymap_class;
-} GdkQnxScreenKeymapClass;
+#define GDK_TYPE_QNXSCREEN_TOPLEVEL        (gdk_qnxscreen_toplevel_get_type ())
+#define GDK_QNXSCREEN_TOPLEVEL(object)     (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_QNXSCREEN_TOPLEVEL, GdkQnxScreenToplevel))
+#define GDK_IS_QNXSCREEN_TOPLEVEL(object)  (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_QNXSCREEN_TOPLEVEL))
 
-#define GDK_TYPE_QNXSCREEN_KEYMAP (gdk_qnxscreen_keymap_get_type ())
-#define GDK_QNXSCREEN_KEYMAP(object) (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_QNXSCREEN_KEYMAP, GdkQnxScreenKeymap))
-#define GDK_IS_QNXSCREEN_KEYMAP(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_QNXSCREEN_KEYMAP))
+GType gdk_qnxscreen_toplevel_get_type (void);
+void gdk_qnxscreen_toplevel_iface_init (GdkToplevelInterface *iface);
 
-GType gdk_qnxscreen_keymap_get_type (void);
-GdkKeymap *gdk_qnxscreen_keymap_get_keymap (GdkDisplay *display);
 #endif

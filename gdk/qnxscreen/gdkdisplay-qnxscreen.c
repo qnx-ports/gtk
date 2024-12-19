@@ -27,7 +27,8 @@
 #include "gdkkeys-qnxscreen.h"
 #include "gdkmonitor-qnxscreen-class.h"
 #include "gdkprivate-qnxscreen.h"
-#include "gdksurface-qnxscreen-class.h"
+#include "gdksurface-qnxscreen-data.h"
+#include "gdktoplevel-qnxscreen-class.h"
 
 G_DEFINE_TYPE (GdkQnxScreenDisplay, gdk_qnxscreen_display, GDK_TYPE_DISPLAY)
 
@@ -487,4 +488,49 @@ gdk_qnxscreen_display_surface_destroyed (GdkDisplay *display, GdkSurface *surfac
 {
   GDK_DEBUG (MISC, "%s surface destroyed event: %p", QNX_SCREEN, surface);
   gdk_qnxscreen_device_seat_surface_destroyed (display, surface);
+}
+
+gboolean
+_gdk_qnxscreen_display_position_surface (GdkDisplay *display,
+                                         GdkSurface *surface,
+                                         int        *x,
+                                         int        *y)
+{
+  GdkSurface *transient_for;
+  GdkMonitor *monitor;
+
+  transient_for = surface->transient_for;
+  monitor = gdk_display_get_monitor_at_surface (display, transient_for);
+
+  //TODO: get position for surface with parent
+  if (transient_for == NULL) {
+    return FALSE;
+  }
+
+  GdkQnxScreenSurface * qnx_surface = GDK_QNXSCREEN_SURFACE(surface);
+  GdkQnxScreenSurface * parent_qnx_surface = GDK_QNXSCREEN_SURFACE(transient_for);
+
+  GdkRectangle surface_rect;
+  GdkRectangle parent_rect;
+
+  /*
+  Try to center on top of the parent
+  TODO: handle shadow
+  */
+  parent_rect.x = parent_qnx_surface->win_x;
+  parent_rect.y = parent_qnx_surface->win_y;
+  parent_rect.width = parent_qnx_surface->win_width;
+  parent_rect.height = parent_qnx_surface->win_height;
+
+  surface_rect.width = qnx_surface->win_width;
+  surface_rect.height = qnx_surface->win_height;
+  surface_rect.x = parent_rect.x + ((parent_rect.width - surface_rect.width) / 2);
+  surface_rect.y = parent_rect.y + ((parent_rect.height - surface_rect.height) / 2);
+
+  _gdk_qnxscreen_monitor_clamp (GDK_QNXSCREEN_MONITOR (monitor), &surface_rect);
+
+  *x = surface_rect.x;
+  *y = surface_rect.y;
+
+  return TRUE;
 }

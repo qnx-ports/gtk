@@ -24,7 +24,6 @@
 #include "gdk/gdkframeclockidleprivate.h"
 #include "gdk/gdkpopupprivate.h"
 #include "gdk/gdksurfaceprivate.h"
-#include "gdk/gdktoplevelprivate.h"
 #include "gdksurface-qnxscreen-class.h"
 #include <screen/screen.h>
 
@@ -89,16 +88,6 @@ struct _GdkQnxScreenSurface
 struct _GdkQnxScreenSurfaceClass
 {
   GdkSurfaceClass parent_class;
-};
-
-struct _GdkQnxScreenToplevel
-{
-  struct _GdkQnxScreenSurface parent_instance;
-};
-
-struct _GdkQnxScreenToplevelClass
-{
-  struct _GdkQnxScreenSurfaceClass parent_class;
 };
 
 struct _GdkQnxScreenPopup

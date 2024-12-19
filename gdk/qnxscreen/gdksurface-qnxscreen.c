@@ -20,6 +20,7 @@
 #include "errno.h"
 #include "gdk_qnxscreen_common.h"
 #include "gdkdevice-qnxscreen-class.h"
+#include "gdkmonitor-qnxscreen-class.h"
 #include "gdkdisplay-qnxscreen-data.h"
 #include "gdkmonitor-qnxscreen-data.h"
 #include "gdksurface-qnxscreen-data.h"
@@ -36,7 +37,7 @@ gdk_qnxscreen_surface_post_screen (GdkSurface *surface, int buffer_idx, int num_
     }
 }
 
-static gboolean
+gboolean
 gdk_qnxscreen_surface_get_device_state (GdkSurface *surface, GdkDevice *device, double *x, double *y, GdkModifierType *mask)
 {
   GDK_DEBUG (MISC, "%s surface get device state: surface %p - device %p", QNX_SCREEN, surface, device);
@@ -54,7 +55,7 @@ gdk_qnxscreen_surface_get_device_state (GdkSurface *surface, GdkDevice *device, 
   return result;
 }
 
-static void
+void
 gdk_qnxscreen_surface_get_root_coords (GdkSurface *surface, gint x, gint y, gint *root_x, gint *root_y)
 {
   int out_x = 0;
@@ -78,7 +79,7 @@ gdk_qnxscreen_surface_get_root_coords (GdkSurface *surface, gint x, gint y, gint
   GDK_DEBUG (MISC, "%s %s: %d,%d => %d,%d", QNX_SCREEN, __func__, x, y, out_x, out_y);
 }
 
-static int
+int
 gdk_qnxscreen_surface_create_buffers (GdkQnxScreenSurface *qnx_screen_surface, int *buf_size)
 {
   GdkSurface *surface = GDK_SURFACE (qnx_screen_surface);
@@ -166,7 +167,7 @@ gdk_qnxscreen_surface_create_buffers (GdkQnxScreenSurface *qnx_screen_surface, i
   return ret;
 }
 
-static void
+void
 gdk_qnxscreen_surface_destroy_buffers (GdkQnxScreenSurface *impl)
 {
   for (int i = 0; i < QNXSCREEN_NUM_BUFFERS; i++)
@@ -193,20 +194,20 @@ gdk_qnxscreen_surface_destroy_buffers (GdkQnxScreenSurface *impl)
     }
 }
 
-static int
+int
 gdk_qnxscreen_surface_recreate_buffers (GdkQnxScreenSurface *impl, int *buf_size)
 {
   gdk_qnxscreen_surface_destroy_buffers (impl);
   return gdk_qnxscreen_surface_create_buffers (impl, buf_size);
 }
 
-static void
+void
 gdk_qnxscreen_surface_set_input_region (GdkSurface *surface, cairo_region_t *shape_region)
 {
   GDK_DEBUG (MISC, "%s surface set input region: %p", QNX_SCREEN, surface);
 }
 
-static void
+void
 gdk_qnxscreen_surface_show (GdkSurface *surface)
 {
   GdkQnxScreenSurface *impl = GDK_QNXSCREEN_SURFACE (surface);
@@ -233,7 +234,7 @@ gdk_qnxscreen_surface_show (GdkSurface *surface)
     }
 }
 
-static void
+void
 gdk_qnxscreen_surface_hide (GdkSurface *surface)
 {
   GdkQnxScreenSurface *impl = GDK_QNXSCREEN_SURFACE (surface);
@@ -261,7 +262,7 @@ gdk_qnxscreen_surface_hide (GdkSurface *surface)
   _gdk_surface_clear_update_area (surface);
 }
 
-static void
+void
 gdk_qnxscreen_surface_move_to_monitor (GdkSurface *surface, GdkMonitor *monitor)
 {
   GdkQnxScreenSurface *impl = GDK_QNXSCREEN_SURFACE (surface);
@@ -301,7 +302,7 @@ gdk_qnxscreen_surface_move_to_monitor (GdkSurface *surface, GdkMonitor *monitor)
   impl->mapped_monitor = monitor;
 }
 
-static void
+void
 gdk_qnxscreen_surface_move_resize (GdkSurface *surface,
                                    gboolean with_move,
                                    int x,
@@ -335,31 +336,18 @@ gdk_qnxscreen_surface_move_resize (GdkSurface *surface,
   if (width >= 0 && height >= 0 && width != impl->win_width && height != impl->win_height)
     {
       /* Make non-zero */
-      width = (width) ? width : 1;
-      height = (height) ? height : 1;
+      GdkRectangle rect;
+      rect.x = impl->win_x;
+      rect.y = impl->win_y;
+      rect.width = (width) ? width : 1;
+      rect.height = (height) ? height : 1;
 
       /* If we know the size of the monitor, clamp width / height to that */
       GdkMonitor *monitor = gdk_display_get_monitor_at_surface (display, surface);
-      if (monitor)
-        {
-          GdkRectangle monitor_geometry;
-          gdk_monitor_get_geometry (monitor, &monitor_geometry);
-
-          if (width >= monitor_geometry.width)
-            {
-              width = monitor_geometry.width;
-              GDK_DEBUG (MISC, "%s clamped window width to %d", QNX_SCREEN, width);
-            }
-
-          if (height >= monitor_geometry.height)
-            {
-              height = monitor_geometry.height;
-              GDK_DEBUG (MISC, "%s clamped window height to %d", QNX_SCREEN, height);
-            }
-        }
+      _gdk_qnxscreen_monitor_clamp(GDK_QNXSCREEN_MONITOR(monitor), &rect);
 
       /* Set the window size */
-      int new_size[] = { width, height };
+      int new_size[] = { rect.width, rect.height };
       ret = screen_set_window_property_iv (impl->window_handle, SCREEN_PROPERTY_SIZE, new_size);
       if (ret == -1)
         {
@@ -367,7 +355,7 @@ gdk_qnxscreen_surface_move_resize (GdkSurface *surface,
           return;
         }
 
-      if (width > impl->buf_width || height > impl->buf_height)
+      if (rect.width > impl->buf_width || rect.height > impl->buf_height)
         {
           /* The window has been resized larger than the buffers; we must recreate the buffers entirely */
           ret = gdk_qnxscreen_surface_recreate_buffers (impl, new_size);
@@ -399,11 +387,11 @@ gdk_qnxscreen_surface_move_resize (GdkSurface *surface,
           gdk_surface_set_egl_native_window (surface, impl->window_handle);
         }
 
-      impl->win_width = width;
-      impl->win_height = height;
-      surface->width = width;
-      surface->height = height;
-      GDK_DEBUG (MISC, "%s qnxscreen surface resized to: %dx%d", QNX_SCREEN, width, height);
+      impl->win_width = rect.width;
+      impl->win_height = rect.height;
+      surface->width = rect.width;
+      surface->height = rect.height;
+      GDK_DEBUG (MISC, "%s qnxscreen surface resized to: %dx%d", QNX_SCREEN, rect.width, rect.height);
       _gdk_surface_update_size (surface);
     }
 
@@ -414,7 +402,7 @@ gdk_qnxscreen_surface_move_resize (GdkSurface *surface,
     }
 }
 
-static void
+void
 gdk_qnxscreen_surface_fullscreen (GdkSurface *surface)
 {
   if (GDK_SURFACE_DESTROYED (surface))
@@ -448,7 +436,7 @@ gdk_qnxscreen_surface_fullscreen (GdkSurface *surface)
   GDK_DEBUG (MISC, "%s surface window set to fullscreen", QNX_SCREEN);
 }
 
-static void
+void
 gdk_qnxscreen_surface_fullscreen_on_monitor (GdkSurface *surface,
                                              GdkMonitor *monitor)
 {
@@ -463,7 +451,7 @@ gdk_qnxscreen_surface_fullscreen_on_monitor (GdkSurface *surface,
   gdk_qnxscreen_surface_fullscreen (surface);
 }
 
-static void
+void
 gdk_qnxscreen_surface_unfullscreen (GdkSurface *surface)
 {
   if (GDK_SURFACE_DESTROYED (surface))
@@ -519,7 +507,7 @@ gdk_qnxscreen_surface_layout_popup (GdkSurface *surface,
                                      final_rect.height);
 }
 
-static void
+void
 gdk_qnxscreen_surface_destroy (GdkSurface *surface, gboolean foreign_destroy)
 {
   GDK_DEBUG (MISC, "%s destroy surface: %p", QNX_SCREEN, surface);
@@ -583,7 +571,7 @@ gdk_qnxscreen_surface_destroy (GdkSurface *surface, gboolean foreign_destroy)
     }
 }
 
-static GdkDrag *
+GdkDrag *
 gdk_qnxscreen_surface_drag_begin (GdkSurface *surface,
                                   GdkDevice *device,
                                   GdkContentProvider *content,
@@ -635,7 +623,10 @@ gdk_qnxscreen_surface_class_init (GdkQnxScreenSurfaceClass *class)
   surface_class->drag_begin = gdk_qnxscreen_surface_drag_begin;
 }
 
-static void
+/*
+Create a QNX window group for the surface if it doesn't have group handle already.
+*/
+void
 gdk_qnxscreen_surface_create_group (GdkSurface *surface)
 {
   GdkQnxScreenSurface *impl = GDK_QNXSCREEN_SURFACE (surface);
@@ -670,7 +661,7 @@ gdk_qnxscreen_surface_create_group (GdkSurface *surface)
     }
 }
 
-static void
+void
 gdk_qnxscreen_create_window (GdkQnxScreenSurface *qnx_screen_surface, int qnxscreen_window_type)
 {
   GdkSurface *surface = GDK_SURFACE (qnx_screen_surface);
@@ -782,21 +773,7 @@ gdk_qnxscreen_create_window (GdkQnxScreenSurface *qnx_screen_surface, int qnxscr
   g_hash_table_insert (qnx_screen_display->surface_window_table, qnx_screen_surface->window_handle, surface);
 }
 
-G_DEFINE_TYPE_WITH_CODE (GdkQnxScreenToplevel, gdk_qnxscreen_toplevel, GDK_TYPE_QNXSCREEN_SURFACE, G_IMPLEMENT_INTERFACE (GDK_TYPE_TOPLEVEL, gdk_qnxscreen_toplevel_iface_init))
-
-static void
-gdk_qnxscreen_toplevel_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
-{
-  GDK_DEBUG (SETTINGS, "%s toplevel set property %d", QNX_SCREEN, prop_id);
-}
-
-static void
-gdk_qnxscreen_toplevel_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
-{
-  GDK_DEBUG (SETTINGS, "%s toplevel get property %d", QNX_SCREEN, prop_id);
-}
-
-static void
+void
 gdk_qnxscreen_surface_raise (GdkSurface *surface)
 {
   GQueue *zorders = NULL;
@@ -844,7 +821,7 @@ gdk_qnxscreen_surface_raise (GdkSurface *surface)
     }
 }
 
-static void
+void
 gdk_qnxscreen_surface_lower (GdkSurface *surface)
 {
   GQueue *zorders = NULL;
@@ -890,227 +867,6 @@ gdk_qnxscreen_surface_lower (GdkSurface *surface)
             }
         }
     }
-}
-
-static gboolean
-gdk_qnxscreen_toplevel_lower (GdkToplevel *toplevel)
-{
-  gdk_qnxscreen_surface_lower (GDK_SURFACE (toplevel));
-
-  return TRUE;
-}
-
-static void
-gdk_qnxscreen_toplevel_present (GdkToplevel *toplevel, GdkToplevelLayout *layout)
-{
-  GdkSurface *surface = GDK_SURFACE (toplevel);
-  GdkDisplay *display = gdk_surface_get_display (surface);
-  GdkMonitor *monitor;
-  GdkToplevelSize size;
-  int bounds_width, bounds_height;
-  int width, height;
-  GdkGeometry geometry;
-  GdkSurfaceHints mask;
-  gboolean fullscreen;
-  gboolean maximize;
-
-  // If has transient_for, use it as the parent
-  // Otherwise, use the display window as the parent. 
-  int ret;
-  screen_window_t parent_window_handle;
-  char* parent_group_name;
-  GdkQnxScreenSurface *impl = GDK_QNXSCREEN_SURFACE (surface);
-  GdkQnxScreenDisplay *display_impl = GDK_QNXSCREEN_DISPLAY (display);
-  if (surface->transient_for)
-  {
-    gdk_qnxscreen_surface_create_group (surface->transient_for);
-
-    GdkQnxScreenSurface *transient_impl = GDK_QNXSCREEN_SURFACE (surface->transient_for);
-    GDK_DEBUG (MISC, "%s toplevel present: create and join group for transient window.", QNX_SCREEN);
-    parent_window_handle = transient_impl->window_handle;
-    parent_group_name = transient_impl->group_name;
-  }
-  else
-  {  
-    GDK_DEBUG (MISC, "%s toplevel present: create and join group for ancestor window.", QNX_SCREEN);
-    parent_window_handle =  display_impl ->qnxscreen_ancestor_window;
-    parent_group_name = display_impl -> qnxscreen_group_name;
-  }
-  if (NULL == parent_window_handle || strlen (parent_group_name) <= 0)
-  {
-    g_critical (G_STRLOC ": toplevel window has invalid qnxscreen window group");
-  }
-  else
-  {
-    ret = screen_join_window_group (impl->window_handle, parent_group_name);
-    if (ret)
-    {
-      g_critical (G_STRLOC ": toplevel window failed join window group: %s", strerror (errno));
-    }
-    else
-    {
-      ret = screen_flush_context (impl->context_handle, 0);
-      if (ret)
-      {
-        g_critical (G_STRLOC ": toplevel window failed flush context: %s", strerror (errno));
-      }
-      else
-      {
-        GDK_DEBUG (MISC, "%s, toplevel window joined qnxscreen window group: %s", QNX_SCREEN, parent_group_name);
-      }
-    }
-  }
-  
-  gdk_qnxscreen_surface_raise (surface);
-  monitor = gdk_display_get_monitor_at_surface (display, surface);
-  if (monitor)
-    {
-      GdkRectangle monitor_geometry;
-      gdk_monitor_get_geometry (monitor, &monitor_geometry);
-      bounds_width = monitor_geometry.width;
-      bounds_height = monitor_geometry.height;
-      GDK_DEBUG (MISC, "%s monitor bounds - size %dx%d", QNX_SCREEN, bounds_width, bounds_height);
-
-      /* Move the surface to this monitor internally */
-      gdk_qnxscreen_surface_move_to_monitor (surface, monitor);
-    }
-  else
-    {
-      bounds_width = G_MAXINT;
-      bounds_height = G_MAXINT;
-    }
-
-  gdk_toplevel_size_init (&size, bounds_width, bounds_height);
-  gdk_toplevel_notify_compute_size (GDK_TOPLEVEL (surface), &size);
-  g_warn_if_fail (size.width > 0);
-  g_warn_if_fail (size.height > 0);
-  width = size.width;
-  height = size.height;
-
-  if (gdk_toplevel_layout_get_resizable (layout))
-    {
-      geometry.min_width = size.min_width;
-      geometry.min_height = size.min_height;
-      mask = GDK_HINT_MIN_SIZE;
-    }
-  else
-    {
-      geometry.max_width = geometry.min_width = width;
-      geometry.max_height = geometry.min_height = height;
-      mask = GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE;
-    }
-
-  gdk_surface_constrain_size (&geometry, mask, width, height, &width, &height);
-  gdk_qnxscreen_surface_move_resize (surface, FALSE, -1, -1, width, height);
-
-  /* On QNX, just make maximize the same as fullscreen */
-  if (gdk_toplevel_layout_get_maximized (layout, &maximize))
-    {
-      if (maximize)
-        gdk_qnxscreen_surface_fullscreen (surface);
-      else
-        gdk_qnxscreen_surface_unfullscreen (surface);
-    }
-
-  if (gdk_toplevel_layout_get_fullscreen (layout, &fullscreen))
-    {
-      if (fullscreen)
-        {
-          GdkMonitor *fullscreen_monitor =
-              gdk_toplevel_layout_get_fullscreen_monitor (layout);
-
-          if (fullscreen_monitor)
-            gdk_qnxscreen_surface_fullscreen_on_monitor (surface, fullscreen_monitor);
-          else
-            gdk_qnxscreen_surface_fullscreen (surface);
-        }
-      else
-        {
-          gdk_qnxscreen_surface_unfullscreen (surface);
-        }
-    }
-
-  /* TODO: Do something with shadows internally in Screen? */
-
-  int was_mapped = GDK_SURFACE_IS_MAPPED (surface);
-
-  if (!was_mapped)
-    gdk_surface_set_is_mapped (surface, TRUE);
-
-  gdk_qnxscreen_surface_show (surface);
-
-  if (!was_mapped)
-    gdk_surface_invalidate_rect (surface, NULL);
-}
-
-static void
-gdk_qnxscreen_toplevel_begin_move (GdkToplevel *toplevel,
-                                   GdkDevice *device,
-                                   int button,
-                                   double x,
-                                   double y,
-                                   guint32 timestamp)
-{
-  // TODO: actually implement this
-  //       QNX Screen has no native drag implementation -- need to emulate
-}
-
-static void
-gdk_qnxscreen_toplevel_begin_resize (GdkToplevel *toplevel,
-                                     GdkSurfaceEdge edge,
-                                     GdkDevice *device,
-                                     int button,
-                                     double x,
-                                     double y,
-                                     guint32 timestamp)
-{
-  // TODO: Actually implement this
-}
-
-static void
-gdk_qnxscreen_toplevel_init (GdkQnxScreenToplevel *toplevel)
-{
-  GDK_DEBUG (MISC, "%s initializing GdkQnxScreenToplevel: %p", QNX_SCREEN, toplevel);
-}
-
-static void
-gdk_qnxscreen_toplevel_constructed (GObject *object)
-{
-  GdkQnxScreenSurface *qnx_screen_surface = GDK_QNXSCREEN_SURFACE (object);
-  GdkSurface *surface = GDK_SURFACE (qnx_screen_surface);
-  GDK_DEBUG (MISC, "%s toplevel object constructed: %p", QNX_SCREEN, object);
-
-  /* frame clock: a toplevel surface does not have a parent, so use the parent frame clock */
-  gdk_surface_set_frame_clock (surface, _gdk_frame_clock_idle_new ());
-
-  /* create QnxScreen window of type SCREEN_CHILD_WINDOW */
-  gdk_qnxscreen_create_window (qnx_screen_surface, SCREEN_CHILD_WINDOW);
-
-  /* call parent */
-  G_OBJECT_CLASS (gdk_qnxscreen_toplevel_parent_class)->constructed (object);
-}
-
-static void
-gdk_qnxscreen_toplevel_class_init (GdkQnxScreenToplevelClass *class)
-{
-  GDK_DEBUG (MISC, "%s initializing GdkQnxScreenToplevelClass: %p", QNX_SCREEN, class);
-
-  GObjectClass *object_class = G_OBJECT_CLASS (class);
-  object_class->constructed = gdk_qnxscreen_toplevel_constructed;
-  object_class->get_property = gdk_qnxscreen_toplevel_get_property;
-  object_class->set_property = gdk_qnxscreen_toplevel_set_property;
-  gdk_toplevel_install_properties (object_class, 1);
-}
-
-void
-gdk_qnxscreen_toplevel_iface_init (GdkToplevelInterface *iface)
-{
-  GDK_DEBUG (MISC, "%s initializing toplevel interface: %p", QNX_SCREEN, iface);
-
-  iface->present = gdk_qnxscreen_toplevel_present;
-  iface->lower = gdk_qnxscreen_toplevel_lower;
-  iface->begin_move = gdk_qnxscreen_toplevel_begin_move;
-  iface->begin_resize = gdk_qnxscreen_toplevel_begin_resize;
 }
 
 G_DEFINE_TYPE_WITH_CODE (GdkQnxScreenPopup, gdk_qnxscreen_popup, GDK_TYPE_QNXSCREEN_SURFACE, G_IMPLEMENT_INTERFACE (GDK_TYPE_POPUP, gdk_qnxscreen_popup_iface_init))
