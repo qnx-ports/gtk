@@ -1,8 +1,8 @@
 [wrap-git]
 directory = cairo
-url = https://gitlab.freedesktop.org/cairo/cairo.git
-push-url = ssh://git@gitlab.freedesktop.org:cairo/cairo.git
-revision = 1.17.6
+url = https://github.com/qnx-ports/cairo.git
+push-url = ssh://git@github.com:qnx-ports/cairo.git
+revision = master
 depth = 1
 diff_files = qnx/cairo/0001-Modifications-for-QNX.patch
 

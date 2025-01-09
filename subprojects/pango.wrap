@@ -2,8 +2,8 @@
 directory = pango
 url = https://gitlab.gnome.org/GNOME/pango.git
 push-url = ssh://git@ssh.gitlab.gnome.org:GNOME/pango.git
-# needs to be main, because we build the nightly docs from the subproject
-revision = main
+# pick the commit at version 1.54
+revision = 5b1551e933d069d15169eb7c8bd6b2e95cbfe230
 depth = 1
 diff_files = qnx/pango/0001-Modifications-for-QNX.patch
 
