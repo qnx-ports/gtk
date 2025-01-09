@@ -7,4 +7,3 @@ depth = 1
 
 [provide]
 dependency_names = sysprof-4, sysprof-capture-4, sysprof-ui-4
-

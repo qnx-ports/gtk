@@ -8,4 +8,3 @@ depth = 1
 
 [provide]
 program_names = gi-docgen
-
