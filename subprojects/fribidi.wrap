@@ -3,7 +3,7 @@ directory = fribidi
 url = https://github.com/fribidi/fribidi.git
 push-url = git@github.com:fribidi/fribidi.git
 # lock at release version 1.0.16
-revision = 1.0.16
+revision = v1.0.16
 depth = 1
 diff_files = qnx/fribidi/0001-Modifications-for-QNX.patch
 
