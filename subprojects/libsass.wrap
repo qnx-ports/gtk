@@ -1,5 +1,6 @@
 [wrap-git]
 directory=libsass
+# this repo has been archived since Oct 2nd, 2023
 url=https://github.com/lazka/libsass.git
 revision=meson
 depth=1
