@@ -1,4 +1,6 @@
-To build:
+Here are a few GTK4 sample applications that can be built for QNX.
+
+### To build:
 
 Run `QNX_STAGE=<gtk_installation_path> make -C ./qnx_examples` or `QNX_STAGE=<gtk_installation_path> make -C ./qnx_examples install`
 
