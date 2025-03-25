@@ -385,6 +385,31 @@ emit_button_events (GdkDisplay *display, GdkDevice *device, GdkQnxScreenDevice *
 }
 
 static void
+emit_mouse_wheel_events (GdkDisplay *display, GdkDevice *device, int wheel_delta)
+{
+  GDK_DEBUG (EVENTS, "%s handling mouse wheel event", QNX_SCREEN);
+
+  GdkQnxScreenDevice *pointer = GDK_QNXSCREEN_DEVICE (device);
+
+  GdkScrollDirection direction = (wheel_delta < 0) ? GDK_SCROLL_UP : GDK_SCROLL_DOWN;
+
+  int scroll_y = wheel_delta * 120;
+
+  GdkEvent *event = gdk_scroll_event_new_value120 (
+      pointer->surface,
+      device,
+      NULL,
+      GDK_QNXSCREEN_TIME (),
+      0,
+      direction,
+      0,
+      scroll_y);
+
+  gdk_qnxscreen_event_deliver_event (display, event);
+
+}
+
+static void
 emit_motion_event (GdkDisplay *display, GdkDevice *device)
 {
   GDK_DEBUG (EVENTS, "%s handling pointer motion event", QNX_SCREEN);
@@ -477,6 +502,7 @@ gdk_qnxscreen_device_pointer_event (GdkDisplay *display)
   GDK_DEBUG (EVENTS, "%s handling pointer event", QNX_SCREEN);
 
   int ret = 0;
+  int wheel_delta = 0;
   GdkQnxScreenDisplay *qnx_screen_display = GDK_QNXSCREEN_DISPLAY (display);
   GdkQnxScreenDevice *pointer_state = GDK_QNXSCREEN_DEVICE (qnx_screen_display->core_pointer);
   GdkQnxScreenDevice prev_pointer_state;
@@ -489,6 +515,15 @@ gdk_qnxscreen_device_pointer_event (GdkDisplay *display)
   if (ret == 0)
     {
       ret = screen_get_event_property_iv (qnx_screen_display->event, SCREEN_PROPERTY_BUTTONS, &pointer_state->buttons);
+      if (ret == -1)
+        {
+          g_critical (G_STRLOC "failed to get pointer buttons property: %s", strerror (errno));
+        }
+    }
+
+    if (ret == 0)
+    {
+      ret = screen_get_event_property_iv (qnx_screen_display->event, SCREEN_PROPERTY_MOUSE_WHEEL, &wheel_delta);
       if (ret == -1)
         {
           g_critical (G_STRLOC "failed to get pointer buttons property: %s", strerror (errno));
@@ -550,6 +585,15 @@ gdk_qnxscreen_device_pointer_event (GdkDisplay *display)
       if (pointer_state->buttons != prev_pointer_state.buttons)
         {
           emit_button_events (display, qnx_screen_display->core_pointer, &prev_pointer_state);
+        }
+    }
+
+    /* sent mouse wheel event */
+  if (ret == 0)
+    {
+      if (wheel_delta)
+        {
+          emit_mouse_wheel_events (display, qnx_screen_display->core_pointer, wheel_delta);
         }
     }
 
