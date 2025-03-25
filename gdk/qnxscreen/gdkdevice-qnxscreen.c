@@ -385,7 +385,7 @@ emit_button_events (GdkDisplay *display, GdkDevice *device, GdkQnxScreenDevice *
 }
 
 static void
-emit_mouse_wheel_events (GdkDisplay *display, GdkDevice *device, int wheel_delta)
+emit_mouse_wheel_event (GdkDisplay *display, GdkDevice *device, int wheel_delta)
 {
   GDK_DEBUG (EVENTS, "%s handling mouse wheel event", QNX_SCREEN);
 
@@ -579,7 +579,7 @@ gdk_qnxscreen_device_pointer_event (GdkDisplay *display)
         }
     }
 
-  /* sent button events */
+  /* send button events */
   if (ret == 0)
     {
       if (pointer_state->buttons != prev_pointer_state.buttons)
@@ -588,12 +588,12 @@ gdk_qnxscreen_device_pointer_event (GdkDisplay *display)
         }
     }
 
-    /* sent mouse wheel event */
+    /* send mouse wheel event */
   if (ret == 0)
     {
       if (wheel_delta)
         {
-          emit_mouse_wheel_events (display, qnx_screen_display->core_pointer, wheel_delta);
+          emit_mouse_wheel_event (display, qnx_screen_display->core_pointer, wheel_delta);
         }
     }
 
