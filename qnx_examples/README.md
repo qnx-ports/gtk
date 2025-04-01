@@ -1,8 +1,1 @@
-Here are a few GTK4 sample applications that can be built for QNX.
-
-### To build:
-
-Run `QNX_STAGE=<gtk_installation_path> make -C ./qnx_examples` or `QNX_STAGE=<gtk_installation_path> make -C ./qnx_examples install`
-
-Copy the resulting executables to the target
-Copy the `qnx_examples/image` folder to `/system/local/etc/gtk4/images` on the target
+Check the parent [REAMDE.md](https://github.com/qnx-ports/build-files/tree/main/ports/gtk#how-to-build-and-run-qnx-examples) for instructions to build and test these examples.
