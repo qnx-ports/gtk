@@ -33,7 +33,7 @@ EXTRA_LIBVPATH += $(GTK4_INSTALL_ROOT)/lib
 LDFLAGS += -N2048K
 
 # Default image location on the target is at /base/gtk4/etc/images
-CCFLAGS+=-DIMAGE_RESOURCE_DIR=\"/system/local/etc/gtk4/images\"
+CCFLAGS+=-DIMAGE_RESOURCE_DIR=\"/data/home/qnxuser/share/images\"
 
 # Uncomment this line, or add IOSOCK_BUILD=1 to "make install" command line, if linking against iosock GTK4 libraries
 # i.e. IOSOCK_BUILD=1 make clean install
