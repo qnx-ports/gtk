@@ -303,13 +303,23 @@ activate (GtkApplication *app)
   GtkWidget *vbox;
   GtkWidget *da;
   GtkWidget *label;
+  GtkWidget *headerbar;
   GtkGesture *drag;
+  GdkDisplay *display = gdk_display_get_default();
+	GdkMonitor *monitor = gdk_display_get_monitor_at_surface(display, NULL);
+	GdkRectangle geometry;
+  int screen_width = 0, screen_height = 0;
+	gdk_monitor_get_geometry(monitor, &geometry);
+	g_print("Fulscreen size: %d x %d \n", geometry.width, geometry.height);
+	screen_width = geometry.width;
+	screen_height = geometry.height;
 
   window = gtk_application_window_new (app);
+  headerbar = gtk_header_bar_new ();
   gtk_window_set_title (GTK_WINDOW (window), "Drawing Area");
-
-  gtk_window_fullscreen(GTK_WINDOW(window));
-
+  gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+  gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
+  gtk_window_set_default_size (GTK_WINDOW (window), screen_width, screen_height);
 
   g_signal_connect (window, "destroy",
                     G_CALLBACK (close_window), NULL);

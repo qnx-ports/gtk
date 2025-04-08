@@ -9,12 +9,14 @@
 #include <gtk/gtk.h>
 #include <string.h>
 
+#ifndef IMAGE_RESOURCE_DIR
+	#error IMAGE_RESOURCE_DIR for the target location of the image resources must be defined.
+#endif
+
+
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 
 static GtkWidget *window = NULL;
-
-#define FOLDER_NAME "/data/home/qnxuser/share/images/gnome-fs-directory.png"
-#define FILE_NAME "/data/home/qnxuser/share/images/gnome-fs-regular.png"
 
 enum
 {
@@ -37,11 +39,11 @@ load_pixbufs (void)
   if (file_pixbuf)
     return; /* already loaded earlier */
 
-  file_pixbuf = gdk_pixbuf_new_from_file (FILE_NAME, NULL);
+  file_pixbuf = gdk_pixbuf_new_from_file (IMAGE_RESOURCE_DIR"/gnome-fs-regular.png", NULL);
   /* resources must load successfully */
   g_assert (file_pixbuf);
 
-  folder_pixbuf = gdk_pixbuf_new_from_file (FOLDER_NAME, NULL);
+  folder_pixbuf = gdk_pixbuf_new_from_file (IMAGE_RESOURCE_DIR"/gnome-fs-directory.png", NULL);
   g_assert (folder_pixbuf);
 }
 
@@ -250,12 +252,24 @@ activate (GtkApplication *app)
   GtkWidget *vbox;
   GtkWidget *tool_bar;
   GtkWidget *home_button;
+  GtkWidget *headerbar;
+  GdkDisplay *display = gdk_display_get_default();
+	GdkMonitor *monitor = gdk_display_get_monitor_at_surface(display, NULL);
+	GdkRectangle geometry;
+  int screen_width = 0, screen_height = 0;
+	gdk_monitor_get_geometry(monitor, &geometry);
+	g_print("Fulscreen size: %d x %d \n", geometry.width, geometry.height);
+	screen_width = geometry.width;
+	screen_height = geometry.height;
 
   window = gtk_application_window_new (app);
 
-  gtk_window_set_title (GTK_WINDOW (window), "Icon View Basics");
+  headerbar = gtk_header_bar_new();
 
-  gtk_window_fullscreen(GTK_WINDOW(window));
+  gtk_window_set_title (GTK_WINDOW (window), "Icon View");
+  gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+  gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
+  gtk_window_set_default_size (GTK_WINDOW (window), screen_width, screen_height);
 
   g_signal_connect (window, "destroy",
                     G_CALLBACK (close_window), NULL);
