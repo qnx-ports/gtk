@@ -73,12 +73,15 @@ do_css_basics (GtkWidget *do_widget)
 
   if (!window)
     {
-      GtkWidget *container, *child;
+      GtkWidget *container, *child, *headerbar;
       GtkStyleProvider *provider;
       GtkTextBuffer *text;
       GBytes *bytes;
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_title (GTK_WINDOW (window), "CSS Basics");
       gtk_window_set_transient_for (GTK_WINDOW (window), GTK_WINDOW (do_widget));
       gtk_window_set_default_size (GTK_WINDOW (window), 400, 300);

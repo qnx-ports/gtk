@@ -119,10 +119,14 @@ do_css_blendmodes (GtkWidget *do_widget)
     {
       GtkStyleProvider *provider;
       GtkBuilder *builder;
+      GtkWidget *headerbar;
 
       builder = gtk_builder_new_from_resource ("/css_blendmodes/blendmodes.ui");
 
       window = WID ("window");
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_transient_for (GTK_WINDOW (window), GTK_WINDOW (do_widget));
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 

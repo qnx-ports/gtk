@@ -72,12 +72,15 @@ GtkWidget *
 do_gears (GtkWidget *do_widget)
 {
   static GtkWidget *window = NULL;
-  GtkWidget *box, *hbox, *fps_label, *gears, *overlay, *frame;
+  GtkWidget *box, *hbox, *fps_label, *gears, *overlay, *frame, *headerbar;
   int i;
 
   if (!window)
     {
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_title (GTK_WINDOW (window), "Gears");
       gtk_window_set_resizable (GTK_WINDOW (window), TRUE);
       gtk_window_set_default_size (GTK_WINDOW (window), 640, 640);

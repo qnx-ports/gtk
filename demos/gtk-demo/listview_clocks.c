@@ -464,12 +464,15 @@ do_listview_clocks (GtkWidget *do_widget)
 {
   if (window == NULL)
     {
-      GtkWidget *gridview, *sw;
+      GtkWidget *gridview, *sw, *headerbar;
       GtkListItemFactory *factory;
       GtkSelectionModel *model;
 
       /* This is the normal window setup code every demo does */
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_title (GTK_WINDOW (window), "Clocks");
       gtk_window_set_default_size (GTK_WINDOW (window), 600, 400);
       gtk_window_set_display (GTK_WINDOW (window),

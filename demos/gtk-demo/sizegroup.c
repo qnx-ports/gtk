@@ -66,6 +66,7 @@ do_sizegroup (GtkWidget *do_widget)
   GtkWidget *frame;
   GtkWidget *vbox;
   GtkWidget *check_button;
+  GtkWidget *headerbar;
   GtkSizeGroup *size_group;
 
   static const char *color_options[] = {
@@ -83,6 +84,9 @@ do_sizegroup (GtkWidget *do_widget)
   if (!window)
     {
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_display (GTK_WINDOW (window),  gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Size Groups");
       gtk_window_set_resizable (GTK_WINDOW (window), FALSE);

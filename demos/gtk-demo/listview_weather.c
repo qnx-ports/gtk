@@ -300,9 +300,12 @@ do_listview_weather (GtkWidget *do_widget)
 {
   if (window == NULL)
     {
-      GtkWidget *listview, *sw;
+      GtkWidget *listview, *sw, *headerbar;
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_default_size (GTK_WINDOW (window), 600, 400);
       gtk_window_set_title (GTK_WINDOW (window), "Weather");
       gtk_window_set_display (GTK_WINDOW (window),

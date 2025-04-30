@@ -41,6 +41,7 @@ do_infobar (GtkWidget *do_widget)
   GtkWidget *label;
   GtkWidget *actions;
   GtkWidget *button;
+  GtkWidget *headerbar;
 
   if (!window)
     {
@@ -48,6 +49,9 @@ do_infobar (GtkWidget *do_widget)
       gtk_widget_add_css_class (actions, "linked");
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Info Bars");

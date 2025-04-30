@@ -20,10 +20,14 @@ do_textundo (GtkWidget *do_widget)
     {
       GtkWidget *view;
       GtkWidget *sw;
+      GtkWidget *headerbar;
       GtkTextBuffer *buffer;
       GtkTextIter iter;
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_default_size (GTK_WINDOW (window), 330, 330);

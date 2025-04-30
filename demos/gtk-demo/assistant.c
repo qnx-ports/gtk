@@ -176,10 +176,15 @@ GtkWidget*
 do_assistant (GtkWidget *do_widget)
 {
   static GtkWidget *assistant;
+  GtkWidget *headerbar;
 
   if (!assistant)
     {
       assistant = gtk_assistant_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_title (GTK_WINDOW (assistant), "Asistant");
+      gtk_window_set_titlebar(GTK_WINDOW(assistant), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
 
       gtk_window_set_default_size (GTK_WINDOW (assistant), -1, 300);
 

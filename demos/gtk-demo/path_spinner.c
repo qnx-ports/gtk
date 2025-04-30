@@ -292,10 +292,14 @@ do_path_spinner (GtkWidget *do_widget)
   if (!window)
     {
       GtkWidget *picture;
+      GtkWidget *headerbar;
       GdkPaintable *paintable;
       guint timeout_id;
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_resizable (GTK_WINDOW (window), TRUE);
       gtk_window_set_title (GTK_WINDOW (window), "Spinner");
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);

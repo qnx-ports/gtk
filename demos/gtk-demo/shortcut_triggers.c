@@ -50,10 +50,13 @@ do_shortcut_triggers (GtkWidget *do_widget)
 
   if (!window)
     {
-      GtkWidget *list;
+      GtkWidget *list, *headerbar;
       GtkEventController *controller;
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Shortcuts");

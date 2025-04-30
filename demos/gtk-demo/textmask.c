@@ -55,11 +55,14 @@ GtkWidget *
 do_textmask (GtkWidget *do_widget)
 {
   static GtkWidget *window = NULL;
-  static GtkWidget *da;
+  static GtkWidget *da, *headerbar;
 
   if (!window)
     {
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_resizable (GTK_WINDOW (window), TRUE);
       gtk_widget_set_size_request (window, 400, 240);
       gtk_window_set_title (GTK_WINDOW (window), "Text Mask");

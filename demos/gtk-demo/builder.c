@@ -114,11 +114,15 @@ do_builder (GtkWidget *do_widget)
       GtkBuilder *builder;
       GtkWidget *about;
       GtkWidget *status;
+      GtkWidget *headerbar;
       GtkEventController *controller;
 
       builder = gtk_builder_new_from_resource ("/builder/demo.ui");
 
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window1"));
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
