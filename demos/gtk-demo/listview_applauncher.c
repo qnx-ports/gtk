@@ -145,12 +145,15 @@ do_listview_applauncher (GtkWidget *do_widget)
 {
   if (window == NULL)
     {
-      GtkWidget *list, *sw;
+      GtkWidget *list, *sw, *headerbar;
       GListModel *model;
       GtkListItemFactory *factory;
 
       /* Create a window and set a few defaults */
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_default_size (GTK_WINDOW (window), 640, 320);
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));

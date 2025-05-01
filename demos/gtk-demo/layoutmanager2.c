@@ -21,6 +21,7 @@ do_layoutmanager2 (GtkWidget *parent)
     {
       GtkWidget *widget;
       GtkWidget *child;
+      GtkWidget *headerbar;
       const char *name[] = {
         "action-unavailable-symbolic",
         "address-book-new-symbolic",
@@ -170,6 +171,9 @@ do_layoutmanager2 (GtkWidget *parent)
       int i;
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_title (GTK_WINDOW (window), "Layout Manager — Transformation");
       gtk_window_set_default_size (GTK_WINDOW (window), 600, 620);
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);

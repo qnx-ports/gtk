@@ -34,6 +34,7 @@ do_expander (GtkWidget *do_widget)
   GtkWidget *label;
   GtkWidget *sw;
   GtkWidget *tv;
+  GtkWidget *headerbar;
   GtkTextBuffer *buffer;
   GtkTextIter start;
   GtkTextIter end;
@@ -44,6 +45,9 @@ do_expander (GtkWidget *do_widget)
     {
       toplevel = GTK_WIDGET (gtk_widget_get_root (do_widget));
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_title (GTK_WINDOW (window), "Expander");
       gtk_window_set_transient_for (GTK_WINDOW (window), GTK_WINDOW (toplevel));
       area = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);

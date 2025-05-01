@@ -40,6 +40,7 @@ do_listbox_controls (GtkWidget *do_widget)
     {
       GtkBuilderScope *scope;
       GtkBuilder *builder;
+      GtkWidget *headerbar;
 
       scope = gtk_builder_cscope_new ();
       gtk_builder_cscope_add_callback (scope, row_activated);
@@ -49,6 +50,9 @@ do_listbox_controls (GtkWidget *do_widget)
       gtk_builder_add_from_resource (builder, "/listbox_controls/listbox_controls.ui", NULL);
 
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);

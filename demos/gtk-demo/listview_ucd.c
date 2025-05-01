@@ -354,8 +354,12 @@ do_listview_ucd (GtkWidget *do_widget)
       GtkWidget *listview, *sw;
       GtkWidget *box, *label;
       GtkCssProvider *provider;
+      GtkWidget *headerbar;
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_default_size (GTK_WINDOW (window), 800, 400);
       gtk_window_set_title (GTK_WINDOW (window), "Characters");
       gtk_window_set_display (GTK_WINDOW (window),

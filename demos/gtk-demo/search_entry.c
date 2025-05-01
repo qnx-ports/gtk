@@ -256,11 +256,15 @@ do_search_entry (GtkWidget *do_widget)
   GtkWidget *hbox;
   GtkWidget *entry;
   GtkWidget *find_button;
+  GtkWidget *headerbar;
   GtkWidget *cancel_button;
 
   if (!window)
     {
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_display (GTK_WINDOW (window),  gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Search Entry");
       gtk_window_set_resizable (GTK_WINDOW (window), FALSE);

@@ -251,8 +251,12 @@ do_iconview (GtkWidget *do_widget)
       GtkWidget *vbox;
       GtkWidget *tool_bar;
       GtkWidget *home_button;
+      GtkWidget *headerbar;
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_default_size (GTK_WINDOW (window), 650, 400);
 
       gtk_window_set_display (GTK_WINDOW (window),

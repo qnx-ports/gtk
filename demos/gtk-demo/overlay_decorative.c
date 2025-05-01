@@ -32,11 +32,15 @@ do_overlay_decorative (GtkWidget *do_widget)
       GtkWidget *text;
       GtkWidget *image;
       GtkWidget *scale;
+      GtkWidget *headerbar;
       GtkTextBuffer *buffer;
       GtkTextIter start, end;
       GtkAdjustment *adjustment;
 
       window = gtk_window_new ();
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       gtk_window_set_default_size (GTK_WINDOW (window), 500, 510);
       gtk_window_set_title (GTK_WINDOW (window), "Decorative Overlay");
 

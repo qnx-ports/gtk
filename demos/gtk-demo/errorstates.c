@@ -101,6 +101,7 @@ do_errorstates (GtkWidget *do_widget)
       GtkBuilder *builder;
       GtkBuilderScope *scope;
       GtkWidget *sw, *label;
+      GtkWidget *headerbar;
 
       toplevel = GTK_WIDGET (gtk_widget_get_root (do_widget));
 
@@ -114,6 +115,9 @@ do_errorstates (GtkWidget *do_widget)
       gtk_builder_add_from_resource (builder, "/errorstates/errorstates.ui", NULL);
 
       window = GTK_WIDGET (gtk_builder_get_object (builder, "dialog"));
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
 
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));

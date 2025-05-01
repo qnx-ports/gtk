@@ -1,10 +1,10 @@
 # These should be in the order you want them to appear in the
 # demo app, which means alphabetized by demo title, not filename
 demos = files([
-  'application_demo.c',
+#  'application_demo.c',
   'assistant.c',
   'builder.c',
-  'clipboard.c',
+#  'clipboard.c',
   'combobox.c',
   'constraints.c',
   'constraints_interactive.c',
@@ -16,10 +16,10 @@ demos = files([
   'css_multiplebgs.c',
   'css_pixbufs.c',
   'css_shadows.c',
-  'cursors.c',
+#  'cursors.c',
   'dialog.c',
   'drawingarea.c',
-  'dnd.c',
+#  'dnd.c',
   'editable_cells.c',
   'entry_completion.c',
   'entry_undo.c',
@@ -38,13 +38,13 @@ demos = files([
   'hypertext.c',
   'iconscroll.c',
   'iconview.c',
-  'iconview_edit.c',
-  'image_scaling.c',
+#  'iconview_edit.c',
+#  'image_scaling.c',
   'images.c',
   'infobar.c',
   'layoutmanager.c',
   'layoutmanager2.c',
-  'links.c',
+#  'links.c',
   'listbox.c',
   'listbox_controls.c',
   'mask.c',
@@ -77,16 +77,16 @@ demos = files([
   'path_spinner.c',
   'path_walk.c',
   'path_text.c',
-  'peg_solitaire.c',
+#  'peg_solitaire.c',
   'pickers.c',
-  'printing.c',
+#  'printing.c',
   'read_more.c',
   'revealer.c',
   'rotated_text.c',
   'scale.c',
   'search_entry.c',
   'search_entry2.c',
-  'shadertoy.c',
+#  'shadertoy.c',
   'shortcuts.c',
   'shortcut_triggers.c',
   'sidebar.c',
@@ -105,7 +105,7 @@ demos = files([
   'theming_style_classes.c',
   'transparent.c',
   'tree_store.c',
-  'video_player.c',
+#  'video_player.c',
   'font_features.c',
 ])
 
@@ -146,7 +146,7 @@ extra_demo_sources = files([
 ])
 
 if os_unix
-  demos += files('pagesetup.c')
+  #demos += files('pagesetup.c')
 endif
 
 librsvg_dep = dependency('librsvg-2.0', version: '>= 2.52.0', required: false)

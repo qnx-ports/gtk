@@ -356,6 +356,7 @@ do_iconscroll (GtkWidget *do_widget)
       GtkBuilder *builder;
       GtkBuilderScope *scope;
       GtkWidget *label;
+      GtkWidget *headerbar;
       guint id;
 
       scope = gtk_builder_cscope_new ();
@@ -367,6 +368,9 @@ do_iconscroll (GtkWidget *do_widget)
 
       gtk_builder_add_from_resource (builder, "/iconscroll/iconscroll.ui", NULL);
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));

@@ -138,10 +138,14 @@ do_frames (GtkWidget *do_widget)
       GtkBuilder *builder;
       GtkWidget *box;
       GtkWidget *label;
+      GtkWidget *headerbar;
       guint id;
 
       builder = gtk_builder_new_from_resource ("/frames/frames.ui");
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
+      headerbar = gtk_header_bar_new ();
+      gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+      gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(headerbar), ":close");
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
