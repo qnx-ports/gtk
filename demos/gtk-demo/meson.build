@@ -71,7 +71,7 @@ demos = files([
   'paintable_mediastream.c',
   'paintable_symbolic.c',
   'panes.c',
-#  'password_entry.c',
+  'password_entry.c',
   'path_fill.c',
   'path_maze.c',
   'path_spinner.c',
