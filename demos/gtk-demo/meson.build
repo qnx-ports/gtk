@@ -261,8 +261,8 @@ executable('gtk4-demo-application',
 # icons
 icontheme_dir = join_paths(gtk_datadir, 'icons/hicolor')
 
-foreach size: ['scalable', 'symbolic']
-  install_subdir('data/' + size, install_dir: icontheme_dir)
+foreach size: ['16x16', '32x32', '64x64', 'scalable', 'symbolic']
+  install_subdir('../../gtk/icons/' + size, install_dir: icontheme_dir)
 endforeach
 
 # desktop file
