@@ -22,7 +22,15 @@
 // Offset from left side of the screen
 #define WAVEFORM_END 1180
 #define WAVEFORM_WIDTH (WAVEFORM_END-1)
- 
+
+#define EKG_Y_OFFSET ((SCREEN_HEIGHT - 600) / 2)
+#define PLETH_Y_OFFSET ((SCREEN_HEIGHT + 220) / 2)
+#define RESP_Y_OFFSET ((SCREEN_HEIGHT + 550) / 2)
+
+#define SCROLL_SPEED_EKG    0.7
+#define SCROLL_SPEED_PLETH  0.95
+#define SCROLL_SPEED_RESP   0.45
+
 // Buffer to store wave values
 double wave_buffer_ekg[BUFFER_SIZE] = {0.0}; 
 double wave_buffer_pleth[BUFFER_SIZE] = {0.0};
@@ -51,11 +59,9 @@ int max_oximeter_change = 1;
 int co2_level = 40;
 int max_co2_change = 1;
  
-double pulse_pattern[25] = {1.75, 1.75, 1.75, 1.25, 0.25, 0.25, 0.25, 1.5, 1.5, 1.5, 1.5, 3.0, -5.0, 2.0, 2.0, 1.5, 1.5, 1.5, 1.5, 1.0, 1.0, 0.5, 0.5, 1.0, 1.0};
-double pulse_pattern2[25] = {-5.0, -6.0, -7.0, -8.0, -9.0, -9.25, -9.0, -5.0, -4.0, -2.0, -1.0, 0.0, 0.25, 0.0, -0.25, -0.5, -1.0, -2.0, -3.0, -3.5, -4.0, -4.5, -5.0, -5.0, -5.0};
-double pulse_pattern3[25] = {6.0, 6.0, 6.0, 5.5, 5.0, 4.75, 4.0, 3.5, 3.0, 2.75, 2, 1.5, 1.25, 1.0, 1.0, 1.0, 1.25, 1.5, 2.0, 2.75, 3.0, 3.5, 4.0, 5.0, 5.75};
- 
-gboolean animation_active = FALSE;
+double pulse_pattern_ekg[25] = {1.75, 1.75, 1.75, 1.25, 0.25, 0.25, 0.25, 1.5, 1.5, 1.5, 1.5, 3.0, -5.0, 2.0, 2.0, 1.5, 1.5, 1.5, 1.5, 1.0, 1.0, 0.5, 0.5, 1.0, 1.0};
+double pulse_pattern_pleth[25] = {-5.0, -6.0, -7.0, -8.0, -9.0, -9.25, -9.0, -5.0, -4.0, -2.0, -1.0, 0.0, 0.25, 0.0, -0.25, -0.5, -1.0, -2.0, -3.0, -3.5, -4.0, -4.5, -5.0, -5.0, -5.0};
+double pulse_pattern_resp[25] = {6.0, 6.0, 6.0, 5.5, 5.0, 4.75, 4.0, 3.5, 3.0, 2.75, 2, 1.5, 1.25, 1.0, 1.0, 1.0, 1.25, 1.5, 2.0, 2.75, 3.0, 3.5, 4.0, 5.0, 5.75};
  
 static gboolean update_animation(gpointer user_data) {
     GtkWidget *drawing_area = user_data;
@@ -152,6 +158,33 @@ static gboolean update_animation(gpointer user_data) {
     return G_SOURCE_CONTINUE;
 }
  
+void update_wave_position(double *current_x, double speed) {
+    *current_x -= speed;
+    if (*current_x <= 0) {
+        *current_x = WAVEFORM_WIDTH;
+    }
+}
+
+void draw_waveform(cairo_t *cr, const double *buffer, double current_x, double y_offset, int amplitude, double r, double g, double b) {
+    double wave_start_x = fmod(current_x, BUFFER_SIZE);
+    cairo_set_source_rgb(cr, r, g, b);
+    cairo_set_line_width(cr, 3);
+
+    for (int i = 0; i < DISTANCE; i++) {
+        int buffer_idx = ((int)wave_start_x + i) % BUFFER_SIZE;
+        double x = WAVEFORM_WIDTH - i * ((double)WAVEFORM_WIDTH / DISTANCE);
+        double y = y_offset + amplitude * buffer[buffer_idx];
+        if (i == 0) {
+            cairo_move_to(cr, x, y);
+        } else {
+            cairo_line_to(cr, x, y);
+        }
+    }
+
+    // Draw the wave to the screen
+    cairo_stroke(cr);
+}
+
 static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, int height, gpointer data) {
 
     cairo_set_source_rgb(cr, 0, 0, 0); // Black background
@@ -215,7 +248,7 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     cairo_set_font_size(cr, 30);
     cairo_show_text(cr, "Oximeter");
  
-    //Draw blood pressure value
+    // Draw blood pressure value
     cairo_set_source_rgb(cr, 0, 1, 0);
     cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 540);
     cairo_set_font_size(cr, 125);
@@ -223,7 +256,7 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     snprintf(bp_text, sizeof(bp_text), "%d", systolic_bp);
     cairo_show_text(cr, bp_text);
     cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 540);
-    snprintf(bp_text, sizeof(bp_text), "____", diastolic_bp);
+    snprintf(bp_text, sizeof(bp_text), "____");
     cairo_show_text(cr, bp_text);
     cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET+40, 680);
     snprintf(bp_text, sizeof(bp_text), "%d", diastolic_bp);
@@ -294,108 +327,51 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     cairo_set_source_rgb(cr, 0, 0, 1); // Blue
     cairo_move_to(cr, TEXT_COLUMN_1_OFFSET, 990);
     cairo_show_text(cr, "RESP");
-    
-    // EKG (heartbeat) wave
-    double wave_start_x = fmod(current_x_ekg, BUFFER_SIZE);
-    cairo_set_source_rgb(cr, 1, 0, 0); // Red line
-    cairo_set_line_width(cr, 3); // Thickness of the wave
-    for (int i = 0; i < DISTANCE; i++) {  // Increasing DISTANCE increases width of wave
-        int buffer_idx = (int)wave_start_x + i;
-        double x = WAVEFORM_WIDTH - i * (double)WAVEFORM_WIDTH / DISTANCE;
-        double y = (SCREEN_HEIGHT-600) / 2 + AMPLITUDE * wave_buffer_ekg[buffer_idx % BUFFER_SIZE];
-        if (i == 0) {
-            cairo_move_to(cr, x, y);
-        } else {
-            cairo_line_to(cr, x, y);
-        }
-    }
-    current_x_ekg -= 0.7; // Smaller value slows down speed of wave
-    if (current_x_ekg <= 0) {
-        current_x_ekg = WAVEFORM_WIDTH;
-    }
- 
-    // Pleth (blood flow) wave
-    double wave_start_x2 = fmod(current_x_pleth, BUFFER_SIZE);
-    cairo_set_source_rgb(cr2, 0, 1, 0); // Green line
-    cairo_set_line_width(cr2, 3); // Thickness of the wave
-    for (int j = 0; j < DISTANCE; j++) {  // Increasing DISTANCE increases width of wave
-        int buffer_idx2 = (int)wave_start_x2 + j;
-        double x2 = WAVEFORM_WIDTH - j * (double)WAVEFORM_WIDTH / DISTANCE;
-        double y2 = (SCREEN_HEIGHT+220) / 2 + AMPLITUDE * wave_buffer_pleth[buffer_idx2 % BUFFER_SIZE];
-        if (j == 0) {
-            cairo_move_to(cr2, x2, y2);
-        } else {
-            cairo_line_to(cr2, x2, y2);
-        }
-    }
-    current_x_pleth -= 0.95; // Smaller value slows down speed of wave
-    if (current_x_pleth <= 0) {
-        current_x_pleth = WAVEFORM_WIDTH;
-    }
- 
-    // RESP (breathing) wave
-    double wave_start_x3 = fmod(current_x_resp, BUFFER_SIZE);
-    cairo_set_source_rgb(cr3, 0, 0, 1); // Blue line
-    cairo_set_line_width(cr3, 3); // Thickness of the wave
-    for (int k = 0; k < DISTANCE; k++) {  //increasing DISTANCE increases width of wave
-        int buffer_idx3 = (int)wave_start_x3 + k;
-        double x3 = WAVEFORM_WIDTH - k * (double)WAVEFORM_WIDTH / DISTANCE;
-        double y3 = (SCREEN_HEIGHT+550) / 2 + AMPLITUDE * wave_buffer_resp[buffer_idx3 % BUFFER_SIZE];
-        if (k == 0) {
-            cairo_move_to(cr3, x3, y3);
-        } else {
-            cairo_line_to(cr3, x3, y3);
-        }
-    }
-    current_x_resp -= 0.45; // Smaller value slows down speed of wave
-    if (current_x_resp <= 0) {
-        current_x_resp = WAVEFORM_WIDTH;
-    }
- 
-    // Draws the three waves to the screen
-    cairo_stroke(cr);
-    cairo_stroke(cr2);
-    cairo_stroke(cr3);
- 
+        
+    // Draw waveforms
+    draw_waveform(cr,  wave_buffer_ekg,   current_x_ekg,   EKG_Y_OFFSET,   AMPLITUDE, 1.0, 0.0, 0.0);
+    draw_waveform(cr2, wave_buffer_pleth, current_x_pleth, PLETH_Y_OFFSET, AMPLITUDE, 0.0, 1.0, 0.0);
+    draw_waveform(cr3, wave_buffer_resp,  current_x_resp,  RESP_Y_OFFSET,  AMPLITUDE, 0.0, 0.0, 1.0);
+
+    update_wave_position(&current_x_ekg, SCROLL_SPEED_EKG);
+    update_wave_position(&current_x_pleth, SCROLL_SPEED_PLETH);
+    update_wave_position(&current_x_resp, SCROLL_SPEED_RESP);
+
     cairo_destroy(cr2);
     cairo_destroy(cr3);
 }
- 
+
 void activate(GtkApplication *app, gpointer user_data) {
 
     GtkWidget *window3 = gtk_application_window_new(app);
     gtk_window_set_default_size(GTK_WINDOW(window3), SCREEN_WIDTH, SCREEN_HEIGHT);
     gtk_window_set_title(GTK_WINDOW(window3), "Patient Vitals");
     GtkWidget *drawing_area = gtk_drawing_area_new();
-    gtk_drawing_area_set_content_width;
     gtk_window_set_child(GTK_WINDOW(window3), drawing_area);
     gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(drawing_area), draw_callback, NULL, NULL);
-    gtk_widget_show(window3);
+    // gtk_widget_show(window3);
+    gtk_widget_set_visible(window3, TRUE);
  
-    animation_active = TRUE;
     g_timeout_add(25, update_animation, drawing_area); // Smaller number = faster speed of wave
 }
- 
+
+void fill_wave_buffer(double *buffer, const double *pattern, int pattern_len) {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        buffer[i] = pattern[i % pattern_len];
+    }
+}
  
 int main(int argc, char *argv[]) {
 
-    for (int i = 0; i < BUFFER_SIZE; i++) {
-        wave_buffer_ekg[i] = pulse_pattern[i%25];
-    }
+    fill_wave_buffer(wave_buffer_ekg, pulse_pattern_ekg, G_N_ELEMENTS(pulse_pattern_ekg));
+    fill_wave_buffer(wave_buffer_pleth, pulse_pattern_pleth, G_N_ELEMENTS(pulse_pattern_pleth));
+    fill_wave_buffer(wave_buffer_resp, pulse_pattern_resp, G_N_ELEMENTS(pulse_pattern_resp));
 
-    for (int j = 0; j < BUFFER_SIZE; j++) {
-        wave_buffer_pleth[j] = pulse_pattern2[j%25];
-    }
-
-    for (int k = 0; k < BUFFER_SIZE; k++) {
-        wave_buffer_resp[k] = pulse_pattern3[k%25];
-    }
- 
-    GtkApplication *app = gtk_application_new("com.BlackBerry", G_APPLICATION_FLAGS_NONE);
+    // GtkApplication *app = gtk_application_new("com.BlackBerry", G_APPLICATION_FLAGS_NONE);
+    GtkApplication *app = gtk_application_new("com.BlackBerry", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
  
     int status = g_application_run(G_APPLICATION(app), argc, argv);
-    g_object_unref(app);
- 
+    g_object_unref(app); 
     return status;
 }
