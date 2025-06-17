@@ -1,45 +1,62 @@
+/*
+* Copyright (c) 2025, BlackBerry Limited. All rights reserved.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
  
-#define AMPLITUDE 21 //changes height of wave
-#define AMPLITUDE2 25 //changes height of wave
-#define FREQUENCY 2 //more periods in wave if increased
-#define DISTANCE 200 
-#define BUFFER_SIZE 1000 //size of the buffer array
-#define SCREEN_WIDTH  1920
-#define SCREEN_HEIGHT 1080
+// Constants for wave drawing and UI layout
+#define AMPLITUDE 21 // Height of waveform
+#define DISTANCE 200 // Width of the wave drawn per frame
+#define BUFFER_SIZE 1000 // Size of waveform buffer
+#define SCREEN_WIDTH  1920 // Window width
+#define SCREEN_HEIGHT 1080 // Window height
 
-// EKG, Pleth, RESP
-// Offset from left side of the screen
+
+// Text label positioning offsets
 #define TEXT_COLUMN_1_OFFSET 20
-// Offset from right side of the screen
 #define TEXT_COLUMN_2_OFFSET 690
-// Offset from right side of the screen
 #define TEXT_COLUMN_3_OFFSET 360
-// Where the waveforms end and the stats text begins
-// Offset from left side of the screen
-#define WAVEFORM_END 1180
-#define WAVEFORM_WIDTH (WAVEFORM_END-1)
 
+// Layout region dividing waveform from text stats
+#define WAVEFORM_END 1180
+#define WAVEFORM_WIDTH (WAVEFORM_END - 1)
+
+// Vertical Y offsets for placing waveforms
 #define EKG_Y_OFFSET ((SCREEN_HEIGHT - 600) / 2)
 #define PLETH_Y_OFFSET ((SCREEN_HEIGHT + 220) / 2)
 #define RESP_Y_OFFSET ((SCREEN_HEIGHT + 550) / 2)
 
+// Wave scroll speeds (lower = slower)
 #define SCROLL_SPEED_EKG    0.7
 #define SCROLL_SPEED_PLETH  0.95
 #define SCROLL_SPEED_RESP   0.45
 
-// Buffer to store wave values
+// Buffers to hold waveform values
 double wave_buffer_ekg[BUFFER_SIZE] = {0.0}; 
 double wave_buffer_pleth[BUFFER_SIZE] = {0.0};
 double wave_buffer_resp[BUFFER_SIZE] = {0.0};
- 
+
+// Current X positions for waveform scrolling
 double current_x_ekg = WAVEFORM_WIDTH;
 double current_x_pleth = WAVEFORM_WIDTH;
 double current_x_resp = WAVEFORM_WIDTH;
- 
+
+// Vital sign values and update ranges
 int pulse_value = 75;
 int max_pulse_change = 3;
  
@@ -59,11 +76,12 @@ int max_oximeter_change = 1;
 int co2_level = 40;
 int max_co2_change = 1;
  
+// Simulated waveform pattern values
 double pulse_pattern_ekg[25] = {1.75, 1.75, 1.75, 1.25, 0.25, 0.25, 0.25, 1.5, 1.5, 1.5, 1.5, 3.0, -5.0, 2.0, 2.0, 1.5, 1.5, 1.5, 1.5, 1.0, 1.0, 0.5, 0.5, 1.0, 1.0};
 double pulse_pattern_pleth[25] = {-5.0, -6.0, -7.0, -8.0, -9.0, -9.25, -9.0, -5.0, -4.0, -2.0, -1.0, 0.0, 0.25, 0.0, -0.25, -0.5, -1.0, -2.0, -3.0, -3.5, -4.0, -4.5, -5.0, -5.0, -5.0};
 double pulse_pattern_resp[25] = {6.0, 6.0, 6.0, 5.5, 5.0, 4.75, 4.0, 3.5, 3.0, 2.75, 2, 1.5, 1.25, 1.0, 1.0, 1.0, 1.25, 1.5, 2.0, 2.75, 3.0, 3.5, 4.0, 5.0, 5.75};
- 
 
+// Periodic animation update: refreshes vitals and redraws
 static gboolean update_animation(gpointer user_data) {
     GtkWidget *drawing_area = user_data;
 
@@ -82,6 +100,7 @@ static gboolean update_animation(gpointer user_data) {
     return G_SOURCE_CONTINUE;
 }
 
+// Scrolls waveform leftward at a constant speed
 void update_wave_position(double *current_x, double speed) {
     *current_x -= speed;
     if (*current_x <= 0) {
@@ -89,6 +108,7 @@ void update_wave_position(double *current_x, double speed) {
     }
 }
 
+// Renders a waveform using Cairo from a buffer of values
 void draw_waveform(cairo_t *cr, const double *buffer, double current_x, double y_offset, int amplitude, double r, double g, double b) {
     double wave_start_x = fmod(current_x, BUFFER_SIZE);
     cairo_set_source_rgb(cr, r, g, b);
@@ -109,6 +129,7 @@ void draw_waveform(cairo_t *cr, const double *buffer, double current_x, double y
     cairo_stroke(cr);
 }
 
+// Utility to draw a single text label at a given position
 void draw_label(cairo_t *cr, const char *text, double x, double y, double r, double g, double b, int font_size) {
     cairo_set_source_rgb(cr, r, g, b);
     cairo_move_to(cr, x, y);
@@ -116,6 +137,7 @@ void draw_label(cairo_t *cr, const char *text, double x, double y, double r, dou
     cairo_show_text(cr, text);
 }
 
+// Main drawing routine for UI and waveforms
 static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, int height, gpointer data) {
 
     cairo_set_source_rgb(cr, 0, 0, 0); // Black background
@@ -206,6 +228,7 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     cairo_destroy(cr3);
 }
 
+// GTK application activation callback
 void activate(GtkApplication *app, gpointer user_data) {
 
     GtkWidget *window3 = gtk_application_window_new(app);
@@ -220,12 +243,14 @@ void activate(GtkApplication *app, gpointer user_data) {
     g_timeout_add(25, update_animation, drawing_area); // Smaller number = faster speed of wave
 }
 
+// Fills waveform buffer by repeating a pattern
 void fill_wave_buffer(double *buffer, const double *pattern, int pattern_len) {
     for (int i = 0; i < BUFFER_SIZE; i++) {
         buffer[i] = pattern[i % pattern_len];
     }
 }
  
+// Application entry point
 int main(int argc, char *argv[]) {
 
     fill_wave_buffer(wave_buffer_ekg, pulse_pattern_ekg, G_N_ELEMENTS(pulse_pattern_ekg));
