@@ -3,7 +3,6 @@
 #include <time.h>
 #include <math.h>
  
-#define WIDTH 1250 //changes end column of wave
 #define AMPLITUDE 21 //changes height of wave
 #define AMPLITUDE2 25 //changes height of wave
 #define FREQUENCY 2 //more periods in wave if increased
@@ -11,15 +10,26 @@
 #define BUFFER_SIZE 1000 //size of the buffer array
 #define SCREEN_WIDTH  1920
 #define SCREEN_HEIGHT 1080
- 
+
+// EKG, Pleth, RESP
+// Offset from left side of the screen
+#define TEXT_COLUMN_1_OFFSET 20
+// Offset from right side of the screen
+#define TEXT_COLUMN_2_OFFSET 690
+// Offset from right side of the screen
+#define TEXT_COLUMN_3_OFFSET 360
+// Where the waveforms end and the stats text begins
+// Offset from left side of the screen
+#define WAVEFORM_END 1180
+#define WAVEFORM_WIDTH (WAVEFORM_END-1)
  
 double wave_buffer[BUFFER_SIZE] = {0.0}; //buffer to store wave values
 double wave_buffer2[BUFFER_SIZE] = {0.0};
 double wave_buffer3[BUFFER_SIZE] = {0.0};
  
-double current_x=WIDTH;
-double current_x2=WIDTH;
-double current_x3=WIDTH;
+double current_x=WAVEFORM_WIDTH;
+double current_x2=WAVEFORM_WIDTH;
+double current_x3=WAVEFORM_WIDTH;
  
 int pulse_value = 75;
 int max_pulse_change = 3;
@@ -151,97 +161,82 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     //Draw gray vertical line that delineates waveforms from stats
     cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
     cairo_set_line_width(cr, 1);
-    cairo_move_to(cr, 1251, 81);
-    cairo_line_to(cr, 1251, SCREEN_HEIGHT);
+    cairo_move_to(cr, WAVEFORM_END, 81);
+    cairo_line_to(cr, WAVEFORM_END, SCREEN_HEIGHT);
     cairo_stroke(cr);
  
     //Draw gray horizontal line on bottom of screen
-    cairo_move_to(cr, 1251, SCREEN_HEIGHT-100);
+    cairo_move_to(cr, WAVEFORM_END, SCREEN_HEIGHT-100);
     cairo_line_to(cr, SCREEN_WIDTH, SCREEN_HEIGHT-100);
     cairo_stroke(cr);
  
-    //Draw first wave label
-    cairo_set_source_rgb(cr, 1, 0, 0); //Red text color
-    cairo_move_to(cr, 20, 335);
-    cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 30);
-    cairo_show_text(cr, "EKG");
- 
-    //Draw second wave label
-    cairo_set_source_rgb(cr, 0, 1, 0);
-    cairo_move_to(cr, 20, 675);
-    cairo_show_text(cr, "Pleth");
- 
-    //Draw third wave label
-    cairo_set_source_rgb(cr, 0, 0, 1);
-    cairo_move_to(cr, 20, 950);
-    cairo_show_text(cr, "RESP");
  
     //Draw pulse value
     cairo_set_source_rgb(cr, 1, 0, 0);
-    cairo_move_to(cr, SCREEN_WIDTH-650, 235);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 235);
     cairo_set_font_size(cr, 125);
     char pulse_text[20]; //buffer to hold text
     snprintf(pulse_text, sizeof(pulse_text), "%d", pulse_value);
     cairo_show_text(cr, pulse_text);
     cairo_set_source_rgb(cr, 1, 1, 0);
-    cairo_move_to(cr, SCREEN_WIDTH-643, 285);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 285);
     cairo_set_font_size(cr, 30);
     cairo_show_text(cr, "Pulse");
  
     //Draw respiratory value
     cairo_set_source_rgb(cr, 0, 0, 1);
-    cairo_move_to(cr, SCREEN_WIDTH-650, 880);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 880);
     cairo_set_font_size(cr, 125);
     char respiratory_text[30]; //buffer to hold text
     snprintf(respiratory_text, sizeof(respiratory_text), "%d", respiratory_rate_value);
     cairo_show_text(cr, respiratory_text);
     cairo_set_source_rgb(cr, 1, 1, 0);
-    cairo_move_to(cr, SCREEN_WIDTH-650, 920);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 920);
     cairo_set_font_size(cr, 30);
     cairo_show_text(cr, "RESP(bpm)");
  
     //Draw oximeter value
     cairo_set_source_rgb(cr, 0, 1, 0.5);
-    cairo_move_to(cr, SCREEN_WIDTH-330, 585);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_3_OFFSET, 585);
     cairo_set_font_size(cr, 125);
     char oximeter_text[30]; //buffer to hold text
     snprintf(oximeter_text, sizeof(oximeter_text), "%d", oximeter_percentage);
     cairo_show_text(cr, oximeter_text);
     cairo_set_source_rgb(cr, 1, 1, 0);
-    cairo_move_to(cr, SCREEN_WIDTH-330, 625);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_3_OFFSET, 625);
     cairo_set_font_size(cr, 30);
     cairo_show_text(cr, "Oximeter");
  
     //Draw blood pressure value
     cairo_set_source_rgb(cr, 0, 1, 0);
-    cairo_move_to(cr, SCREEN_WIDTH-650, 540);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 540);
     cairo_set_font_size(cr, 125);
     char bp_text[50]; //buffer to hold text
     snprintf(bp_text, sizeof(bp_text), "%d", systolic_bp);
     cairo_show_text(cr, bp_text);
-    cairo_move_to(cr, SCREEN_WIDTH-650, 540);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 540);
     snprintf(bp_text, sizeof(bp_text), "____", diastolic_bp);
     cairo_show_text(cr, bp_text);
-    cairo_move_to(cr, SCREEN_WIDTH-610, 655);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET+40, 680);
     snprintf(bp_text, sizeof(bp_text), "%d", diastolic_bp);
     cairo_show_text(cr, bp_text);
     cairo_set_source_rgb(cr, 1, 1, 0);
-    cairo_move_to(cr, SCREEN_WIDTH-643, 690);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 730);
     cairo_set_font_size(cr, 30);
     cairo_show_text(cr, "Blood Pressure");
  
     //Draw temperature value
     cairo_set_source_rgb(cr, 1, 0.5, 0);
-    cairo_move_to(cr, SCREEN_WIDTH-330, 235);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_3_OFFSET, 235);
     cairo_set_font_size(cr, 125);
     char temp_text[50]; //buffer to hold text
     snprintf(temp_text, sizeof(temp_text), "%.1f°", body_temperature);
     cairo_show_text(cr, temp_text);
     cairo_set_source_rgb(cr, 1, 1, 0);
-    cairo_move_to(cr, SCREEN_WIDTH-330, 285);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_3_OFFSET, 285);
     cairo_set_font_size(cr, 30);
     cairo_show_text(cr, "Temperature");
+
     // Patient name 
     cairo_set_source_rgb(cr, 0, 0, 0); 
     cairo_move_to(cr, 40, 50); 
@@ -258,61 +253,47 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     strftime(time_string, sizeof(time_string), "%Y-%m-%d %H:%M:%S", time_info);
  
     cairo_set_source_rgb(cr, 1, 1, 1); 
-    cairo_move_to(cr, SCREEN_WIDTH-300, 1030); 
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_2_OFFSET, 1030); 
     cairo_set_font_size(cr, 30);
     cairo_show_text(cr, time_string);
  
     //Draw CO2 level value
     cairo_set_source_rgb(cr, 0.5, 0, 1);
-    cairo_move_to(cr, SCREEN_WIDTH-330, 880);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_3_OFFSET, 880);
     cairo_set_font_size(cr, 125);
     char co2_text[50]; //buffer to hold text
     snprintf(co2_text, sizeof(co2_text), "%d", co2_level);
     cairo_show_text(cr, co2_text);
-   cairo_set_source_rgb(cr, 1, 1, 0);
-    cairo_move_to(cr, SCREEN_WIDTH-330, 920);
+    cairo_set_source_rgb(cr, 1, 1, 0);
+    cairo_move_to(cr, SCREEN_WIDTH-TEXT_COLUMN_3_OFFSET, 920);
     cairo_set_font_size(cr, 30);
     cairo_show_text(cr, "CO2(mmHg)");
- 
-#ifndef THEREAREIMAGES
-    //Draw BlackBerry icon
-    cairo_surface_t *icon_surface5 = cairo_image_surface_create_from_png("blackberry.png");
-    cairo_set_source_surface(cr, icon_surface5, 1830, 5);
-    cairo_paint(cr);
-    cairo_surface_destroy(icon_surface5);
 
-    //Draw alarm icon
-    cairo_surface_t *icon_surface = cairo_image_surface_create_from_png("bell4.png");
-    cairo_set_source_surface(cr, icon_surface, 1262, 985);
-    cairo_paint(cr);
-    cairo_surface_destroy(icon_surface);
+    // Draw first wave (EKG) label
+    cairo_set_source_rgb(cr, 1, 0, 0); // Red
+    cairo_move_to(cr, TEXT_COLUMN_1_OFFSET, 350);
+    cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(cr, 30);
+    cairo_show_text(cr, "EKG");
  
-    //Draw battery icon
-    cairo_surface_t *icon_surface2 = cairo_image_surface_create_from_png("battery2.png");
-    cairo_set_source_surface(cr, icon_surface2, 1352, 985);
-    cairo_paint(cr);
-    cairo_surface_destroy(icon_surface2);
+    // Draw second wave (Pleth) label
+    cairo_set_source_rgb(cr, 0, 1, 0); // Green
+    cairo_move_to(cr, TEXT_COLUMN_1_OFFSET, 705);
+    cairo_show_text(cr, "Pleth");
  
-    //Draw wifi icon
-    cairo_surface_t *icon_surface3 = cairo_image_surface_create_from_png("wifiicon.png");
-    cairo_set_source_surface(cr, icon_surface3, 1442, 995);
-    cairo_paint(cr);
-    cairo_surface_destroy(icon_surface3);
- 
-    //Draw bluetooth icon
-    cairo_surface_t *icon_surface4 = cairo_image_surface_create_from_png("bluetooth4.png");
-    cairo_set_source_surface(cr, icon_surface4, 1532, 995);
-    cairo_paint(cr);
-    cairo_surface_destroy(icon_surface4);
-#endif 
+    // Draw third wave (RESP) label
+    cairo_set_source_rgb(cr, 0, 0, 1); // Blue
+    cairo_move_to(cr, TEXT_COLUMN_1_OFFSET, 990); //950);
+    cairo_show_text(cr, "RESP");
+    
     //EKG (heartbeat) wave
     double wave_start_x = fmod(current_x, BUFFER_SIZE);
     cairo_set_source_rgb(cr, 1, 0, 0); //red line
     cairo_set_line_width(cr, 3); //thickness of the wave
     for (int i = 0; i < DISTANCE; i++) {  //increasing DISTANCE increases width of wave
         int buffer_idx = (int)wave_start_x + i;
-        double x = WIDTH - i * (double)WIDTH / DISTANCE;
-        double y = (SCREEN_HEIGHT-650) / 2 + AMPLITUDE * wave_buffer[buffer_idx % BUFFER_SIZE];
+        double x = WAVEFORM_WIDTH - i * (double)WAVEFORM_WIDTH / DISTANCE;
+        double y = (SCREEN_HEIGHT-600) / 2 + AMPLITUDE * wave_buffer[buffer_idx % BUFFER_SIZE];
         if (i == 0) {
             cairo_move_to(cr, x, y);
         } else {
@@ -321,7 +302,7 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     }
     current_x -= 0.7; //smaller value slows down speed of wave
     if(current_x<=0){
-        current_x = WIDTH;
+        current_x = WAVEFORM_WIDTH;
     }
  
     //Pleth (blood flow) wave
@@ -330,9 +311,10 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     cairo_set_line_width(cr2, 3); //thickness of the wave
     for (int j = 0; j < DISTANCE; j++) {  //increasing DISTANCE increases width of wave
         int buffer_idx2 = (int)wave_start_x2 + j;
-        double x2 = WIDTH - j * (double)WIDTH / DISTANCE;
+        double x2 = WAVEFORM_WIDTH - j * (double)WAVEFORM_WIDTH / DISTANCE;
        // double y2 = (SCREEN_HEIGHT-80) / 2 + AMPLITUDE * wave_buffer2[buffer_idx2 % BUFFER_SIZE];
-        double y2 = (SCREEN_HEIGHT+170) / 2 + AMPLITUDE * wave_buffer2[buffer_idx2 % BUFFER_SIZE];
+    //    double y2 = (SCREEN_HEIGHT+170) / 2 + AMPLITUDE * wave_buffer2[buffer_idx2 % BUFFER_SIZE];
+       double y2 = (SCREEN_HEIGHT+220) / 2 + AMPLITUDE * wave_buffer2[buffer_idx2 % BUFFER_SIZE];
         if (j == 0) {
             cairo_move_to(cr2, x2, y2);
         } else {
@@ -341,7 +323,7 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     }
     current_x2 -= 0.95; //smaller value slows down speed of wave
     if(current_x2<=0){
-        current_x2 = WIDTH;
+        current_x2 = WAVEFORM_WIDTH;
     }
  
     //RESP (breathing) wave
@@ -350,8 +332,9 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     cairo_set_line_width(cr3, 3); //thickness of the wave
     for (int k = 0; k < DISTANCE; k++) {  //increasing DISTANCE increases width of wave
         int buffer_idx3 = (int)wave_start_x3 + k;
-        double x3 = WIDTH - k * (double)WIDTH / DISTANCE;
-        double y3 = (SCREEN_HEIGHT+485) / 2 + AMPLITUDE * wave_buffer3[buffer_idx3 % BUFFER_SIZE];
+        double x3 = WAVEFORM_WIDTH - k * (double)WAVEFORM_WIDTH / DISTANCE;
+        // double y3 = (SCREEN_HEIGHT+485) / 2 + AMPLITUDE * wave_buffer3[buffer_idx3 % BUFFER_SIZE];
+        double y3 = (SCREEN_HEIGHT+550) / 2 + AMPLITUDE * wave_buffer3[buffer_idx3 % BUFFER_SIZE];
         if (k == 0) {
             cairo_move_to(cr3, x3, y3);
         } else {
@@ -360,13 +343,13 @@ static void draw_callback(GtkDrawingArea *drawing_area, cairo_t *cr, int width, 
     }
     current_x3 -= 0.45; //smaller value slows down speed of wave
     if(current_x3<=0){
-        current_x3 = WIDTH;
+        current_x3 = WAVEFORM_WIDTH;
     }
  
     //draws the three waves to the screen
     cairo_stroke(cr);
     cairo_stroke(cr2);
-   cairo_stroke(cr3);
+    cairo_stroke(cr3);
  
     cairo_destroy(cr2);
     cairo_destroy(cr3);
