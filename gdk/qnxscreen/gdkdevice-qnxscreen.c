@@ -393,7 +393,7 @@ emit_mouse_wheel_event (GdkDisplay *display, GdkDevice *device, int wheel_delta)
 
   GdkScrollDirection direction = (wheel_delta < 0) ? GDK_SCROLL_UP : GDK_SCROLL_DOWN;
 
-  int scroll_y = wheel_delta * 120;
+  int scroll_y = -(wheel_delta * 120);
 
   GdkEvent *event = gdk_scroll_event_new_value120 (
       pointer->surface,
@@ -526,7 +526,7 @@ gdk_qnxscreen_device_pointer_event (GdkDisplay *display)
       ret = screen_get_event_property_iv (qnx_screen_display->event, SCREEN_PROPERTY_MOUSE_WHEEL, &wheel_delta);
       if (ret == -1)
         {
-          g_critical (G_STRLOC "failed to get pointer buttons property: %s", strerror (errno));
+          g_critical (G_STRLOC "failed to get mouse wheel property: %s", strerror (errno));
         }
     }
 
